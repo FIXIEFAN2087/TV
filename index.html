@@ -3,573 +3,530 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TV — 24/7</title>
+<title>СмешТВ — круглосуточный мульт-канал</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; user-select: none; }
   :root {
     --bg: #0b0e18; --panel: #141a2c; --panel2: #1a2138; --border: #2a3352;
-    --text: #e8ecf7; --muted: #8a93b2; --accent: #ff007f; --green: #39e75f;
-    --grad: linear-gradient(90deg, #ff007f, #7928ca);
+    --text: #e8ecf7; --muted: #8a93b2; --accent: #FF5E4E; --accent2: #FFB347; --green: #39e75f;
+    --grad: linear-gradient(90deg, #FF5E4E, #FFB347);
   }
-  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
-  .app-container { display: flex; max-width: 1400px; margin: 0 auto; min-height: 100vh; padding: 20px; gap: 20px; }
-  
-  .sidebar { width: 320px; background: var(--panel); border: 1px solid var(--border); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 14px; height: fit-content; }
-  .sidebar h2 { font-size: 13px; letter-spacing: 2px; color: var(--muted); font-weight: 700; }
-  .channel-list { display: flex; flex-direction: column; gap: 8px; }
-  .channel-btn { background: var(--panel2); border: 1px solid var(--border); color: var(--text); padding: 14px; border-radius: 12px; cursor: pointer; text-align: left; font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; transition: .15s; }
-  .channel-btn:hover { border-color: var(--accent); }
-  .channel-btn.active { background: var(--grad); border-color: transparent; color: #fff; box-shadow: 0 4px 15px rgba(255,0,127,0.4); }
-  .channel-num { font-size: 11px; opacity: 0.7; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 6px; }
+  body {
+    background: radial-gradient(1200px 600px at 70% -10%, #1c2444 0%, var(--bg) 55%);
+    color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh;
+  }
+  .wrap { max-width: 1150px; margin: 0 auto; padding: 0 20px 60px; }
 
-  .main-content { flex: 1; display: flex; flex-direction: column; gap: 16px; max-width: 1000px; }
-  header { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; }
-  .brand-logo { font-size: 24px; font-weight: 900; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px 0 18px; flex-wrap: wrap; }
+  .header-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .live-clock { text-align: right; }
-  .live-clock .time { font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; }
-  .live-clock .date { color: var(--muted); font-size: 12px; }
-  .live-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(57,231,95,.1); border: 1px solid rgba(57,231,95,.4); color: var(--green); font-size: 11px; font-weight: 700; letter-spacing: 1px; padding: 4px 10px; border-radius: 999px; }
-  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 1.4s infinite; }
-  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.4; } }
+  .live-clock .time { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: 1px; }
+  .live-clock .date { color: var(--muted); font-size: 13px; }
+  .live-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(57,231,95,.12); border: 1px solid rgba(57,231,95,.45); color: var(--green); font-size: 12px; font-weight: 700; letter-spacing: 2px; padding: 6px 12px; border-radius: 999px; }
+  .live-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0%,100% { opacity:1; box-shadow:0 0 0 0 rgba(57,231,95,.6);} 50% { opacity:.6; box-shadow:0 0 0 6px rgba(57,231,95,0);} }
 
-  .tv { background: var(--panel); border: 1px solid var(--border); border-radius: 20px; padding: 12px; box-shadow: 0 20px 40px rgba(0,0,0,.4); }
-  .screen { position: relative; border-radius: 14px; overflow: hidden; background: #000; aspect-ratio: 16/9; width: 100%; }
+  /* Переключатель версий и аудиодорожек */
+  .version-switcher { display: flex; gap: 8px; background: var(--panel); border: 1px solid var(--border); padding: 4px; border-radius: 14px; }
+  .v-btn { background: transparent; border: none; color: var(--muted); padding: 8px 14px; font-size: 13px; font-weight: 700; border-radius: 10px; cursor: pointer; transition: .15s; }
+  .v-btn.active { background: var(--grad); color: #1a0d05; box-shadow: 0 4px 12px rgba(255,94,78,.3); }
+
+  .audio-tracks { display: flex; gap: 6px; background: var(--panel2); border: 1px solid var(--border); padding: 4px; border-radius: 12px; margin-top: 6px; display: none; }
+  .audio-tracks.visible { display: flex; }
+  .a-btn { background: transparent; border: none; color: var(--muted); padding: 6px 10px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer; transition: .15s; }
+  .a-btn.active { background: var(--border); color: var(--text); }
+
+  .tv { background: linear-gradient(160deg, var(--panel2), var(--panel)); border: 1px solid var(--border); border-radius: 26px; padding: 14px; box-shadow: 0 30px 60px rgba(0,0,0,.5); }
+  .screen { position: relative; border-radius: 16px; overflow: hidden; background: #000; aspect-ratio: 16/9; width: 100%; }
   
-  .screen-guard { position: absolute; inset: 0; z-index: 5; pointer-events: auto; }
-  .video-container { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
-  .video-container iframe { width: 100%; height: 100%; border: 0; }
+  .screen-guard { position: absolute; inset: 0; z-index: 5; background: transparent; pointer-events: auto; }
+  .video-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+  .video-container iframe { width: 100%; height: 100%; border: 0; display: block; }
 
-  .live-watermark { position: absolute; inset: 0; z-index: 3; pointer-events: none; display: flex; align-items: center; justify-content: center; }
-  .live-watermark img { width: 100%; height: 100%; object-fit: fill; display: block; opacity: 0; transition: opacity 0.5s ease; }
-  .live-watermark img.visible { opacity: 1; }
+  .live-watermark { position: absolute; inset: 0; z-index: 2; pointer-events: none; display: flex; align-items: center; justify-content: center; }
+  .live-watermark img { width: 100%; height: 100%; object-fit: contain; display: block; }
 
-  .off-air { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; background: #000; z-index: 20; text-align: center; gap: 14px; }
-  .power-btn { background: var(--grad); color: #fff; border: none; font-weight: 800; font-size: 16px; padding: 14px 28px; border-radius: 999px; cursor: pointer; box-shadow: 0 8px 24px rgba(255,0,127,.6); transition: transform .15s; }
+  .off-air { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; background: #000; z-index: 10; text-align: center; pointer-events: auto; }
+  .off-air img { width: 100%; height: 100%; object-fit: contain; display: block; position: absolute; inset: 0; z-index: 1; }
+  .off-air-content { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; background: rgba(5,7,14,0.75); width: 100%; height: 100%; backdrop-filter: blur(4px); padding: 20px; }
+  .off-air .txt { color: #fff; font-size: 16px; font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+  
+  .power-btn { background: var(--grad); color: #1a0d05; border: none; font-weight: 800; font-size: 18px; padding: 16px 36px; border-radius: 999px; cursor: pointer; box-shadow: 0 8px 26px rgba(255,94,78,.5); transition: transform .15s; pointer-events: auto; }
   .power-btn:hover { transform: translateY(-2px); }
   
-  .tv-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 4px 2px; }
-  .controls button { background: var(--panel2); color: var(--text); border: 1px solid var(--border); padding: 0 16px; height: 38px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: .15s; }
-  .controls button:hover { border-color: var(--accent); }
+  .tv-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 6px 4px; gap: 12px; flex-wrap: wrap; }
+  .controls button { background: var(--panel); color: var(--text); border: 1px solid var(--border); width: 44px; height: 44px; border-radius: 12px; font-size: 18px; cursor: pointer; transition: .15s; }
+  .controls button:hover { border-color: var(--accent); color: var(--accent2); }
 
-  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 16px 20px; }
-  .card h2 { font-size: 11px; letter-spacing: 2px; color: var(--muted); font-weight: 700; margin-bottom: 8px; }
-  .now-title { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
-  .progress { height: 6px; background: #0d1122; border-radius: 999px; overflow: hidden; }
-  .progress > div { height: 100%; background: var(--grad); width: 0%; transition: width 1s linear; }
-  .times { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 18px 20px; margin-top: 18px; }
+  .card h2 { font-size: 15px; letter-spacing: 2.5px; color: var(--muted); font-weight: 700; margin-bottom: 12px; }
+  .now-title { font-size: 20px; font-weight: 700; margin-bottom: 12px; }
+  .progress { height: 10px; background: #0d1122; border-radius: 999px; overflow: hidden; }
+  .progress > div { height: 100%; background: var(--grad); border-radius: 999px; width: 0%; transition: width 1s linear; }
+  .times { display: flex; justify-content: space-between; color: var(--muted); font-size: 13px; margin-top: 8px; font-variant-numeric: tabular-nums; }
 
-  .next-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(42,51,82,.4); font-size: 13px; }
+  .next-item { display: flex; justify-content: space-between; gap: 14px; padding: 10px 0; border-bottom: 1px solid rgba(42,51,82,.6); font-size: 15px; }
   .next-item:last-child { border-bottom: none; }
-  .next-item .when { color: var(--accent); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .next-item .when { color: var(--accent2); font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
 
-  footer { text-align: center; color: var(--muted); font-size: 11px; }
-
-  @media (max-width: 900px) { .app-container { flex-direction: column; } .sidebar { width: 100%; } }
+  footer { text-align: center; color: var(--muted); font-size: 13px; padding-top: 26px; }
+  @media (max-width: 640px) { .live-clock .time { font-size: 22px; } }
 </style>
 </head>
 <body oncontextmenu="return false;" ondragstart="return false;" onselectstart="return false;">
-<div class="app-container">
-  <div class="sidebar">
-    <h2>ПЛЕЙЛИСТ</h2>
-    <div class="channel-list" id="channel-list"></div>
+<div class="wrap">
+  <header>
+    <div class="header-left">
+      <span class="live-badge"><span class="live-dot"></span>В ЭФИРЕ</span>
+      <div class="version-switcher">
+        <button class="v-btn active" id="btn-main" onclick="switchVersion('main')">Основной</button>
+        <button class="v-btn" id="btn-int" onclick="switchVersion('int')">International</button>
+      </div>
+    </div>
+    <div class="live-clock"><div class="time" id="clock">--:--</div><div class="date" id="date"></div></div>
+  </header>
+
+  <!-- Дополнительная панель выбора дорожек для INT версии -->
+  <div class="audio-tracks" id="audio-tracks-bar">
+    <button class="a-btn active" id="track-ru" onclick="switchAudioTrack('ru')">🇷🇺 Русская дорожка</button>
+    <button class="a-btn" id="track-en" onclick="switchAudioTrack('en')">🇬🇧 English track</button>
   </div>
 
-  <div class="main-content">
-    <header>
-      <div class="header-left">
-        <div class="brand-logo" id="header-brand">СмешТВ</div>
-        <span class="live-badge"><span class="live-dot"></span>ПРЯМОЙ ЭФИР</span>
+  <div class="tv">
+    <div class="screen">
+      <div class="screen-guard" id="screen-guard"></div>
+      
+      <div class="live-watermark">
+        <img id="watermark-logo-img" alt="СмешТВ">
       </div>
-      <div class="live-clock"><div class="time" id="clock">--:--</div><div class="date" id="date"></div></div>
-    </header>
 
-    <div class="tv">
-      <div class="screen">
-        <div class="screen-guard" id="screen-guard"></div>
-        <div class="live-watermark"><img id="watermark-logo-img" alt="Логотип"></div>
-        <div class="video-container"><div id="player"></div></div>
-        
-        <div class="off-air" id="unmute-overlay">
-          <div style="font-size:18px;font-weight:700;" id="overlay-title">Телеканал</div>
-          <button class="power-btn" onclick="startTV()">▶ Включить эфир</button>
+      <div class="video-container">
+        <div id="player"></div>
+      </div>
+      
+      <div class="off-air" id="unmute-overlay">
+        <img id="fullscreen-logo-img" alt="СмешТВ">
+        <div class="off-air-content">
+          <div class="txt" id="overlay-text">Эфир идёт круглосуточно</div>
+          <button class="power-btn" id="power-btn-text" onclick="startTV()">▶ Включить эфир</button>
         </div>
       </div>
-
-      <div class="tv-bar">
-        <div style="font-size:13px;color:var(--muted);" id="channel-footer-name">Телеканал</div>
-        <div class="controls"><button onclick="toggleMute()" id="mute-btn">🔇 Звук</button></div>
+    </div>
+    <div class="tv-bar">
+      <div style="font-size:13px;color:var(--muted);" id="channel-brand">СмешТВ</div>
+      <div class="controls">
+        <button onclick="toggleMute()" id="mute-btn" title="Звук">🔊</button>
+        <button onclick="fullscreen()" title="Полный экран">⛶</button>
       </div>
     </div>
-
-    <div class="card">
-      <h2>СЕЙЧАС В ЭФИРЕ</h2>
-      <div class="now-title" id="now-title">Загрузка…</div>
-      <div class="progress"><div id="prog"></div></div>
-      <div class="times"><span id="elapsed">00:00</span><span id="remain">осталось --:--</span></div>
-    </div>
-
-    <div class="card">
-      <h2>ДАЛЕЕ В ЭФИРЕ</h2>
-      <div id="next-list"></div>
-    </div>
-
-    <footer>TV 24/7</footer>
   </div>
+
+  <div class="card">
+    <h2>СЕЙЧАС В ЭФИРЕ</h2>
+    <div class="now-title" id="now-title">Загрузка программы…</div>
+    <div class="progress"><div id="prog"></div></div>
+    <div class="times"><span id="elapsed">00:00</span><span id="remain">осталось --:--</span></div>
+  </div>
+
+  <div class="card">
+    <h2>ДАЛЕЕ В ЭФИРЕ</h2>
+    <div id="next-list"></div>
+  </div>
+
+  <footer id="footer-text">СмешТВ · прямой эфир</footer>
 </div>
 
 <script>
-function parseDuration(val) {
-  if (typeof val === 'number') return val;
-  if (!val) return 0;
-  const p = String(val).split(':').map(Number);
-  return p.length === 3 ? p[0]*3600 + p[1]*60 + p[2] : p.length === 2 ? p[0]*60 + p[1] : Number(val) || 0;
+if (window.self !== window.top) {
+  window.top.location = window.self.location;
 }
 
-// ПОЛНАЯ ТЕЛЕПРОГРАММА СО ВСЕМИ СЕРИЯМИ
-const RAW_CHANNELS = [
-  {
-    name: "СмешТВ",
-    logo: "https://lh3.googleusercontent.com/d/18xKX_FMnfQc555BHX40EppWZshSq0wK1",
-    schedule: [
-      { id: 'ZZgJ0QhOe44', duration: 3670, title: 'Смешарики. Часть 1' },
-      { id: 'c8Zy62mdYfA', duration: 3673, title: 'Смешарики. Часть 2' },
-      { id: 'thaqccB0Duk', duration: 3660, title: 'Смешарики. Часть 3' },
-      { id: 'bnpKzdPuPqQ', duration: 3649, title: 'Смешарики. Часть 4' },
-      { id: 'hTA3CewckcI', duration: 3652, title: 'Смешарики. Часть 5' },
-      { id: 'Sh-3gT0KPKo', duration: 3653, title: 'Смешарики. Часть 6' },
-      { id: 'baSCMw-2qt8', duration: 3651, title: 'Смешарики. Часть 7' },
-      { id: 'rXtaU_yitlQ', duration: 3657, title: 'Смешарики. Часть 8' },
-      { id: 'LilMEk7sV7I', duration: 3641, title: 'Смешарики. Часть 9' },
-      { id: 'r7FdLk6D33U', duration: 3666, title: 'Смешарики. Часть 10' },
-      { id: 'pOWbR8Lt2Fk', duration: 3659, title: 'Смешарики. Часть 11' },
-      { id: 'b0WgAMA82sE', duration: 3661, title: 'Смешарики. Часть 12' },
-      { id: 'Nt0xnw022i8', duration: 3664, title: 'Смешарики. Часть 13' },
-      { id: 'i3J6i3xM32Y', duration: 3663, title: 'Смешарики. Часть 14' },
-      { id: 'N0mnyfrz_Kc', duration: 4043, title: 'Смешарики. Часть 15' },
-      { id: 'Z96u0zQ1NcY', duration: 3654, title: 'Смешарики. Часть 16' },
-      { id: 'QED0t7sm8Fs', duration: 3675, title: 'Смешарики. Часть 17' },
-      { id: 'O6jZrq60wVw', duration: 3655, title: 'Смешарики. Часть 18' },
-      { id: 'VFm3ngb3KDw', duration: 3662, title: 'Смешарики. Часть 19' },
-      { id: 'QIauHSawzog', duration: 3670, title: 'Смешарики. Часть 20' },
-      { id: 'kBKonWmRAjc', duration: 4749, title: 'Смешарики. Часть 21' },
-      { id: 'rEbSRebPl3c', duration: 2216, title: 'Смешарики Новый сезон. Часть 1' },
-      { id: 'SjVLjlzTD1I', duration: 2205, title: 'Смешарики Новый сезон. Часть 2' },
-      { id: '4jPFiWxEcsU', duration: 2207, title: 'Смешарики Новый сезон. Часть 3' },
-      { id: 'HxIN8bdK6MI', duration: 2201, title: 'Смешарики Новый сезон. Часть 4' },
-      { id: 'aYwyJoatNjI', duration: 2241, title: 'Смешарики Новый сезон. Часть 5' },
-      { id: 'Qf9MTm7oMuo', duration: 2374, title: 'Смешарики Новый сезон. Часть 6' },
-      { id: 'PrbRDdP_3xw', duration: 2385, title: 'Смешарики Новый сезон. Часть 7' },
-      { id: 'wtuZsM8AaB0', duration: 2399, title: 'Смешарики Новый сезон. Часть 8' },
-      { id: 'XvIpzwUh218', duration: 2003, title: 'Смешарики Новый сезон. Часть 9' },
-      { id: 'GmMmHxCRXLo', duration: 2384, title: 'Смешарики Новый сезон. Часть 10' },
-      { id: 'pxeoZzd_Hqw', duration: 2394, title: 'Смешарики Новый сезон. Часть 11' },
-      { id: '8bfaNcERQBY', duration: 2394, title: 'Смешарики Новый сезон. Часть 12' },
-      { id: '9fVKFXAU2TM', duration: 2396, title: 'Смешарики Новый сезон. Часть 13' },
-      { id: 'b7n0erMVXz0', duration: 2434, title: 'Смешарики Новый сезон. Часть 14' },
-      { id: 'RCSja3_8gno', duration: 2396, title: 'Смешарики Новый сезон. Часть 15' },
-      { id: 'TAT4hpacgnc', duration: 2397, title: 'Смешарики Новый сезон. Часть 16' },
-      { id: 'Gxp4YOh3dSo', duration: 1596, title: 'Смешарики Новый сезон. Часть 17' },
-      { id: 'Nlr5f_IyHs4', duration: 2611, title: 'Смешарики Новый сезон. Часть 18' },
-      { id: 'P-q48fSvZdM', duration: 2578, title: 'Смешарики Новый сезон. Часть 19' },
-      { id: 'gs-MZg77o6w', duration: 6222, title: 'Смешарики снимают кино. Полнометражный фильм' },
-      { id: 'nOK0h7-5Hu0', duration: 3126, title: 'Фиксики. Часть 1' },
-      { id: 'dpiauz0DRio', duration: 4269, title: 'Фиксики. Часть 2' },
-      { id: 'aKOqDGHN6zw', duration: 3175, title: 'Фиксики. Часть 3' },
-      { id: 'p0CRUaxSzos', duration: 3181, title: 'Фиксики. Часть 4' },
-      { id: '-NfxQCAEuQ0', duration: 3175, title: 'Фиксики. Часть 5' },
-      { id: 'ymSwedLlQag', duration: 3651, title: 'Фиксики. Часть 6' },
-      { id: 'u5jjVvEvED8', duration: 3645, title: 'Фиксики. Часть 7' },
-      { id: 'mludCeHwp6M', duration: 3634, title: 'Фиксики. Часть 8' },
-      { id: 'JidMrZfwS6E', duration: 3650, title: 'Фиксики. Часть 9' },
-      { id: 'LEFAnvb0A2Y', duration: 3613, title: 'Фиксики. Часть 10' },
-      { id: 'iKToH5nt82Y', duration: 3630, title: 'Фиксики. Часть 11' },
-      { id: '2sZoMT7ASdE', duration: 3664, title: 'Фиксики. Часть 12' },
-      { id: '9666mtwGYd0', duration: 3646, title: 'Фиксики. Часть 13' },
-      { id: 'wXNeGMG2PeQ', duration: 3601, title: 'Фиксики. Часть 14' },
-      { id: '6tlME_HgGcc', duration: 3634, title: 'Фиксики. Часть 15' },
-      { id: 'BTXiIcC8t1s', duration: 3640, title: 'Фиксики. Часть 16' },
-      { id: 'NgS5Y3Z6L5Y', duration: 3780, title: 'Фиксики. Часть 17' },
-      { id: 'kk7gYDVXhwU', duration: 3767, title: 'Фиксики. Часть 18' },
-      { id: '01KgLgevgYo', duration: 3743, title: 'Фиксики. Часть 19' },
-      { id: 'XsQkIu9lsMs', duration: 3724, title: 'Фиксики. Часть 20' },
-      { id: 'Wa_s7wWdvio', duration: 3724, title: 'Фиксики. Часть 21' },
-      { id: 'NtGWRWtlDcY', duration: 3694, title: 'Фиксики. Часть 22' },
-      { id: 'weHtYO8T038', duration: 4281, title: 'Фиксики. Часть 23' },
-      { id: 'Ym4DOQynP-4', duration: 4290, title: 'Фиксики. Часть 24' },
-      { id: 'LiF6VClY8EU', duration: 4278, title: 'Фиксики. Часть 25' },
-      { id: '7pNe4f6xjsM', duration: 4273, title: 'Фиксики. Часть 26' },
-      { id: 'vdmnIIQdn8E', duration: 4012, title: 'Фиксики. Часть 27' },
-      { id: 'iVRbH_-Bdvo', duration: 4186, title: 'Барбоскины. Часть 1' },
-      { id: '_ZO5VEEWdX4', duration: 4180, title: 'Барбоскины. Часть 2' },
-      { id: 'ngdtGvLISOk', duration: 4238, title: 'Барбоскины. Часть 3' },
-      { id: 'LBTqMuXNam4', duration: 4213, title: 'Барбоскины. Часть 4' },
-      { id: 'PWrHBxn-Ero', duration: 4200, title: 'Барбоскины. Часть 5' },
-      { id: '9CDdPPlsUkk', duration: 4205, title: 'Барбоскины. Часть 6' },
-      { id: 'BGl3stSRuZU', duration: 4264, title: 'Барбоскины. Часть 7' },
-      { id: '3PFMy0KUqOc', duration: 4235, title: 'Барбоскины. Часть 8' },
-      { id: 'eg_rlPU5nU0', duration: 4136, title: 'Барбоскины. Часть 9' },
-      { id: 'gtS9ljoTxPk', duration: 2215, title: 'Барбоскины. Часть 10' },
-      { id: 'yslXg3Fig9I', duration: 2223, title: 'Барбоскины. Часть 11' },
-      { id: '_IoxEwUfDiY', duration: 1964, title: 'Барбоскины. Часть 12' },
-      { id: '470QBDC99X0', duration: 2257, title: 'Барбоскины. Часть 13' },
-      { id: 'yc0D8cQc8tU', duration: 2263, title: 'Барбоскины. Часть 14' },
-      { id: 'HYuqWJsikYA', duration: 2241, title: 'Барбоскины. Часть 15' },
-      { id: 'Ce8ypKo6bE4', duration: 2226, title: 'Барбоскины. Часть 16' },
-      { id: 'dhIl9KiMrTI', duration: 2225, title: 'Барбоскины. Часть 17' },
-      { id: '2UpeA74wnoE', duration: 2215, title: 'Барбоскины. Часть 18' },
-      { id: 'uriXIjs5U18', duration: 2507, title: 'Маша и Медведь. Часть 1' },
-      { id: 'ocsOiR_zlHc', duration: 2041, title: 'Маша и Медведь. Часть 2' },
-      { id: 'F4iyIpEEp6k', duration: 1657, title: 'Маша и Медведь. Часть 3' },
-      { id: 'f2ZHGXfc1Yg', duration: 2064, title: 'Маша и Медведь. Часть 4' },
-      { id: '7guS5DH4l7w', duration: 2074, title: 'Маша и Медведь. Часть 5' },
-      { id: 'T5gSuIP618g', duration: 2492, title: 'Маша и Медведь. Часть 6' },
-      { id: '93xuP93UOng', duration: 2082, title: 'Маша и Медведь. Часть 7' },
-      { id: 'zJT0LvxPbqw', duration: 2071, title: 'Маша и Медведь. Часть 8' },
-      { id: 'MYbFnk9mEZo', duration: 2133, title: 'Маша и Медведь. Часть 9' },
-      { id: '_2yU3dWzGd8', duration: 2019, title: 'Маша и Медведь. Часть 10' },
-      { id: 'SGvYHxaFrSU', duration: 2114, title: 'Маша и Медведь. Часть 11' },
-      { id: '8chxDXbhKEM', duration: 2102, title: 'Маша и Медведь. Часть 12' },
-      { id: 'fFZrDWsgf5Y', duration: 2168, title: 'Маша и Медведь. Часть 13' },
-      { id: 'xqz808j0GKw', duration: 2180, title: 'Маша и Медведь. Часть 14' },
-      { id: 'Q3Pfmtil-G0', duration: 2204, title: 'Маша и Медведь. Часть 15' }
-    ]
-  },
-  {
-    name: "СмешТВ INTERNATIONAL",
-    logo: "https://lh3.googleusercontent.com/d/165GNzoFaaqjAd6f-NDtH7g1w8ZXph_7O",
-    schedule: [
-      { id: '-W2tJmIJltg', duration: 390, title: 'KikOriki : 1 - The Bench!' },
-      { id: 'rL8u4Y6holg', duration: 390, title: 'Принц для Нюши - Смешарики 2D' },
-      { id: 'U13KJMaJKk8', duration: 390, title: 'Куда уходит Старый год? - Смешарики 2D' },
-      { id: 'oC27Mz_0r2A', duration: 390, title: 'Фанерное солнце - Смешарики 2D' },
-      { id: '2s2pM5aAfBc', duration: 390, title: 'Энергия храпа - Смешарики 2D' },
-      { id: 'odbwz_86Xvg', duration: 390, title: 'Железная няня - Смешарики 2D' },
-      { id: 'Rc84ZglMJVY', duration: 390, title: 'Подарок судьбы - Смешарики 2D' },
-      { id: 'IZ2BQ0lQQv0', duration: 390, title: 'Кто первый? - Смешарики 2D' },
-      { id: 'DYgaq4lJd00', duration: 390, title: 'Некультурный - Смешарики 2D' },
-      { id: '-DzwOFVaMmQ', duration: 390, title: 'Забытая история - Смешарики 2D' },
-      { id: 'JMCnGTNwXX0', duration: 390, title: 'Рояль - Смешарики 2D' },
-      { id: 'wVH6vZiWrl8', duration: 390, title: 'Как собрать друзей по-быстрому - Смешарики 2D' },
-      { id: 'B6qZlPXe_a4', duration: 390, title: 'Телеграф - Смешарики 2D' },
-      { id: 'wC-mrwnfQZ0', duration: 390, title: 'Коллекция - Смешарики 2D' },
-      { id: 'oGelCZ_cG1g', duration: 390, title: 'Лили - Смешарики 2D' },
-      { id: 'rqAMbxbXr4c', duration: 390, title: 'Биография зонтика - Смешарики 2D' },
-      { id: 'qpw-7O72DP8', duration: 390, title: 'Ля - Смешарики 2D' },
-      { id: 'Iu9y-2nEAG0', duration: 390, title: 'Путь в приличное общество - Смешарики 2D' },
-      { id: 'wvU2Y946C58', duration: 390, title: 'День рождения Нюши - Смешарики 2D' },
-      { id: 'D25OYJ4hdys', duration: 390, title: 'Гольф - Смешарики 2D' },
-      { id: '38a0f-fXZCc', duration: 390, title: 'Полёты во сне и наяву - Смешарики 2D' },
-      { id: 'pCdly8Bm5YY', duration: 390, title: 'Событие века - Смешарики 2D' },
-      { id: 'UsYe59gDCOI', duration: 390, title: 'Как стать звездой - Смешарики 2D' },
-      { id: '7F6eE0w4SWE', duration: 390, title: 'Новые зубы Кроша - Смешарики 2D' },
-      { id: '8I1JS1cC8Mw', duration: 390, title: 'Балласт - Смешарики 2D' },
-      { id: 'ociddcCFe2Y', duration: 390, title: 'Рецепт хорошего отдыха - Смешарики 2D' },
-      { id: 'okjt6KBVvaw', duration: 390, title: 'Водные процедуры - Смешарики 2D' },
-      { id: '1z8nmmFj8EQ', duration: 390, title: 'Красота - Смешарики 2D' },
-      { id: 'jWwvuKaFsJc', duration: 390, title: 'Последняя радуга - Смешарики 2D' },
-      { id: 'pUuSRISUpEQ', duration: 390, title: 'Большие гонки - Смешарики 2D' },
-      { id: 'WXjUaWMOOQw', duration: 390, title: 'Магнетизм - Смешарики 2D' },
-      { id: 'rhRexgFZ00A', duration: 390, title: 'Тайное общество - Смешарики 2D' },
-      { id: 'rrgiVX5ulV0', duration: 390, title: 'Что нужно всем - Смешарики 2D' },
-      { id: 'USMZm1QLPXs', duration: 390, title: 'Торжество разума - Смешарики 2D' },
-      { id: 'deSfIYuukCk', duration: 390, title: 'Живые часы - Смешарики 2D' },
-      { id: 'ciq8VPeJHcI', duration: 390, title: 'Это сладкое слово "мёд" - Смешарики 2D' },
-      { id: 'Ggp6bUL23mk', duration: 390, title: 'Играй, Гармония! - Смешарики 2D' },
-      { id: 'QSKYQKJq0ME', duration: 390, title: 'Горы и конфеты - Смешарики 2D' },
-      { id: 'j0TT6ZHxp0s', duration: 390, title: 'Талисман - Смешарики 2D' },
-      { id: 'x3HBYvvYufk', duration: 390, title: 'Страшилка для Нюши - Смешарики 2D' },
-      { id: 't8iggRi0MSU', duration: 390, title: 'Маленькое большое Море - Смешарики 2D' },
-      { id: 'M4a5U9AIeac', duration: 390, title: 'Операция Дед мороз - Смешарики 2D' },
-      { id: 'VEORBPrwuto', duration: 390, title: 'Думают ли о Вас На звёздах? - Смешарики 2D' },
-      { id: 'pwEc7d0eUdg', duration: 390, title: 'Приятные новости - Смешарики 2D' },
-      { id: 'fgGz-tIF43c', duration: 390, title: 'Бабочка - Смешарики 2D' },
-      { id: 'yhz_tbfoPNk', duration: 390, title: 'Археология - Смешарики 2D' },
-      { id: 'HA2BbmebIDc', duration: 390, title: 'Метеорология - Смешарики 2D' },
-      { id: 'iszyng98aLo', duration: 390, title: 'Танцор Диско - Смешарики 2D' },
-      { id: 'gPrfogZBys0', duration: 390, title: 'Мыльная опера - Смешарики 2D' },
-      { id: 'qPWSgPVNZq0', duration: 390, title: 'Долгая рыбалка - Смешарики 2D' },
-      { id: 'iXQ81zQzw0Y', duration: 390, title: 'Ремонт - дело коллективное - Смешарики 2D' },
-      { id: '47qA-RMRtVc', duration: 390, title: 'Обещание - Смешарики 2D' },
-      { id: 'PZRBcDn1BOM', duration: 390, title: 'Педагогическая поэма - Смешарики 2D' },
-      { id: 'ngGOhNnkVd8', duration: 390, title: 'Прощай, Бараш! - Смешарики 2D' },
-      { id: '-DzuecgGawo', duration: 390, title: 'Мисс Вселенная - Смешарики 2D' },
-      { id: '9IsFUwqf188', duration: 390, title: '-41°С - Смешарики 2D' },
-      { id: '9HkNyA55I70', duration: 390, title: 'Футбол 1-й тайм - Смешарики 2D' },
-      { id: 'XwOtseL3btw', duration: 390, title: 'Футбол 2-ой тайм - Смешарики 2D' },
-      { id: 'MfdSBO1IPYo', duration: 390, title: 'ОРЗ - Смешарики 2D' },
-      { id: 'ifkQmUwx_QI', duration: 390, title: 'Снотворец - Смешарики 2D' },
-      { id: '2tkSZRrMRQE', duration: 390, title: 'В начале было слово - Смешарики 2D' },
-      { id: 'yOfYwFdqOVU', duration: 390, title: 'Ульи Копатыча - Смешарики 2D' },
-      { id: 'TFYm7jOwhnM', duration: 390, title: 'День справедливости - Смешарики 2D' },
-      { id: 'I5mNfhsimfA', duration: 390, title: 'Кордебалет - Смешарики 2D' },
-      { id: 'ywkGQskUbFk', duration: 390, title: 'Дар - Смешарики 2D' },
-      { id: 'PYz64y9Ue-k', duration: 390, title: 'Большой куш - Смешарики 2D' },
-      { id: 'ey-7n-dNUIs', duration: 390, title: 'Невоспитанный клон - Смешарики 2D' },
-      { id: 'KSkaA0406Kw', duration: 390, title: 'Основной инстинкт - Смешарики 2D' },
-      { id: 'MTlwV2Yj1RI', duration: 390, title: 'Масленица - Смешарики 2D' },
-      { id: 'm4VFGJXr27g', duration: 390, title: 'Ежидзе - Смешарики 2D' },
-      { id: 'BX_WEjnr0_4', duration: 390, title: 'Как здорово сочинять стихи - Смешарики 2D' },
-      { id: 'iFU3cuX31F8', duration: 390, title: 'Ёжик и здоровье - Смешарики 2D' },
-      { id: 'uJxO8TMj-uI', duration: 390, title: 'Биби и его папа - Смешарики 2D' },
-      { id: 'bKsPf-TZmOQ', duration: 390, title: 'Моя прелесть - Смешарики 2D' },
-      { id: 'mNmG6dmToEc', duration: 390, title: 'Двигатель прогресса - Смешарики 2D' },
-      { id: 'cXlM3ofUqKw', duration: 390, title: 'Маскарад - Смешарики 2D' },
-      { id: 'nAhLGJHHdlQ', duration: 390, title: 'Бойкот - Смешарики 2D' },
-      { id: 'yfPjfVryjMc', duration: 390, title: 'Каникулы Биби - Смешарики 2D' },
-      { id: 'li2r8KszZno', duration: 390, title: 'Космическая одиссея. Часть 1 - Смешарики 2D' },
-      { id: 'opp3DPHlYZ4', duration: 390, title: 'Космическая одиссея. Часть 2 - Смешарики 2D' },
-      { id: 'HVTilP58rCg', duration: 390, title: 'Скверная примета - Смешарики 2D' },
-      { id: '2kXxiuPzsg4', duration: 390, title: 'Личная жизнь - Смешарики 2D' },
-      { id: 'laQnmjBrd2o', duration: 390, title: 'Роман в письмах - Смешарики 2D' },
-      { id: '9GYbnREDGTo', duration: 390, title: 'Плюс снег, минус елка - Смешарики 2D' },
-      { id: 'i-9FtF6ToPg', duration: 390, title: 'Её звали Нюша - Смешарики 2D' },
-      { id: 'dVYKNtI4UOA', duration: 390, title: 'Ежик в Туманности - Смешарики 2D' },
-      { id: 'KI7ytiGgeLs', duration: 390, title: 'Взаперти - Смешарики 2D' },
-      { id: '4ubFiAp3vLw', duration: 390, title: 'Линии судьбы - Смешарики 2D' },
-      { id: '0yMer_OQi4c', duration: 390, title: 'Трюфель - Смешарики 2D' },
-      { id: '5KtKMLCsA-k', duration: 390, title: 'Реалист - Смешарики 2D' },
-      { id: 'XZiIAsNInPg', duration: 390, title: 'Аноним - Смешарики 2D' },
-      { id: 'lK3xzYGej8w', duration: 390, title: 'Куда приводят желания - Смешарики 2D' },
-      { id: 'ptOc6UfJY4c', duration: 390, title: 'Край земли - Смешарики 2D' },
-      { id: 'zzfubODk_8E', duration: 390, title: 'Полоса невезения - Смешарики 2D' },
-      { id: 'SNGSx1Xp5Ro', duration: 390, title: 'Кулинария - Смешарики 2D' },
-      { id: '9hMZwwa9Xek', duration: 390, title: 'Секрет Гудини - Смешарики 2D' },
-      { id: 'nOTaxfOEfrE', duration: 390, title: 'Комната грусти - Смешарики 2D' },
-      { id: 'fXck-6OLaNM', duration: 390, title: 'Вестибулярный аппарат - Смешарики 2D' },
-      { id: 'sZusnhp0Guc', duration: 390, title: 'Герой Плутона - Смешарики 2D' },
-      { id: 'Pjxr08Cw59w', duration: 390, title: 'Смысл жизни - Смешарики 2D' }
-    ]
-  },
-  {
-    name: "SmeshTV INTERNATIONAL",
-    logo: "https://lh3.googleusercontent.com/d/165GNzoFaaqjAd6f-NDtH7g1w8ZXph_7O",
-    schedule: [
-      { id: 'LAisXiVwJqM', duration: 390, title: 'The Bench - KikoRiki | Cartoon for Kids' },
-      { id: '8dQKVcIEx8k', duration: 390, title: 'A Price for Rosa - KikoRiki' },
-      { id: 'XmFBAHKXflk', duration: 390, title: 'Past Year\'s Tale - KikoRiki' },
-      { id: 'NXQ5gZs4KDw', duration: 390, title: 'The Plywood Sun - KikoRiki' },
-      { id: 'RbhLEoNQ5jE', duration: 390, title: 'The Energy of Snoring - KikoRiki' },
-      { id: 'Wwj_Np2krWE', duration: 390, title: 'The Iron Nanny - KikoRiki' },
-      { id: 'p3aROKB7HmA', duration: 390, title: 'The Gift of Fortune - KikoRiki' },
-      { id: '-n2ue8uVc-I', duration: 390, title: 'Who\'s the First - KikoRiki' },
-      { id: 'gcJhXazZoE8', duration: 390, title: 'The Uncultivated - KikoRiki' },
-      { id: 'bDk2PgAq1Oo', duration: 390, title: 'The Forgotten Tale - KikoRiki' },
-      { id: 'dOJotQO4cpQ', duration: 390, title: 'The Grand Piano - KikoRiki' },
-      { id: 'ach7nzmNV3w', duration: 390, title: 'Fast Friends - KikoRiki' },
-      { id: '8EhgI6P5Y1o', duration: 390, title: 'The Telegraph - KikoRiki' },
-      { id: 'c7cWIEGJ5Lo', duration: 390, title: 'The Collection - KikoRiki' },
-      { id: '5auHyKAGLFc', duration: 390, title: 'Lily - KikoRiki' },
-      { id: 'PvYMeqTbeBE', duration: 390, title: 'Memoirs of an Umbrella - KikoRiki' },
-      { id: 'mtCNmjMOgM4', duration: 390, title: 'La - KikoRiki' },
-      { id: 'HubI3CPqjzI', duration: 390, title: 'The Path to Decent Society - KikoRiki' },
-      { id: 'k_f46__zJp8', duration: 390, title: 'Rosa\'s Birthday - KikoRiki' },
-      { id: 'BOP50yM2mx0', duration: 390, title: 'Golf - KikoRiki' },
-      { id: 'GCSkbFzNjrw', duration: 390, title: 'Flying in a Dream and in Reality - KikoRiki' },
-      { id: 'jniS9_x_bh4', duration: 390, title: 'The Big Event - KikoRiki' },
-      { id: 'srSTMJr8M7U', duration: 390, title: 'How to Become a Star - KikoRiki' },
-      { id: '3lRRrsLjeQA', duration: 390, title: 'Krash\'s New Teeth - KikoRiki' },
-      { id: 'qowqgzNQNgo', duration: 390, title: 'BallAst - KikoRiki' },
-      { id: 'yGDj0lSO3qk', duration: 390, title: 'How to Have a Good Rest - KikoRiki' },
-      { id: 'QQtvQZooePU', duration: 390, title: 'Bath Procedures - KikoRiki' },
-      { id: 'LmN6grp_-YI', duration: 390, title: 'Beauty - KikoRiki' },
-      { id: 'j6TgelKfx5s', duration: 390, title: 'The Last Rainbow - KikoRiki' },
-      { id: '7GuhBvjaf4Y', duration: 390, title: 'The Big Race - KikoRiki' },
-      { id: 'IHleSacxobo', duration: 390, title: 'Magnetism - KikoRiki' },
-      { id: 'xGyhau3UNrA', duration: 390, title: 'The Secret Society - KikoRiki' },
-      { id: '7twy4RqIZv8', duration: 390, title: 'What Everybody Needs - KikoRiki' },
-      { id: '1sQab2U9nd0', duration: 390, title: 'The Triumph of Reason - KikoRiki' },
-      { id: 'idD6eGe0G7k', duration: 390, title: 'The Inner Clock - KikoRiki' },
-      { id: 'JzeGBl_7ge0', duration: 390, title: 'The Sweetness of Honey - KikoRiki' },
-      { id: 'QPvANseA7Zw', duration: 390, title: 'In Sweet Harmony - KikoRiki' },
-      { id: 'gKEong7fgQo', duration: 390, title: 'Mountains and Candies - KikoRiki' },
-      { id: 'unMfMGjKgos', duration: 390, title: 'The Lucky Talisman - KikoRiki' },
-      { id: 'qm8dJ0YPfeI', duration: 390, title: 'A Story for Rosa - KikoRiki' },
-      { id: 'BuUwqaK5bKg', duration: 390, title: 'Little Big Sea - KikoRiki' },
-      { id: 'skSafBPN2ZE', duration: 390, title: 'Operation Santa Claus - KikoRiki' },
-      { id: 'p4aGetQedUI', duration: 390, title: 'Admirers in the Sky - KikoRiki' },
-      { id: 'OU84t0_Odx8', duration: 390, title: 'Great News - KikoRiki' },
-      { id: '8EkiEGc5O0E', duration: 390, title: 'The Butterfly - KikoRiki' },
-      { id: 'ElkRcZF7zvY', duration: 390, title: 'Archaeology - KikoRiki' },
-      { id: 'jWu16WgIL6k', duration: 390, title: 'Meteorology - KikoRiki' },
-      { id: 'fL8ZtcisebU', duration: 390, title: 'The Disco Dancer - KikoRiki' },
-      { id: 'tzUdU7HmHBE', duration: 390, title: 'Soap Opera - KikoRiki' },
-      { id: 'Ww9qbDhrk60', duration: 390, title: 'Fishing Trip - KikoRiki' },
-      { id: 'Zexsuc2_J2M', duration: 390, title: 'Remodeling is a Collective Effort - KikoRiki' },
-      { id: 'ZoG5COePvKE', duration: 390, title: 'The Promise - KikoRiki' },
-      { id: 'dNblS5z3AAg', duration: 390, title: 'Training for a Nap - KikoRiki' },
-      { id: '2PqMkmxQQU0', duration: 390, title: 'Bon Voyage, Wally!' },
-      { id: '7kPVKpf8KQ8', duration: 390, title: 'Beauty Queen - KikoRiki' },
-      { id: 'SoeNkuc20oI', duration: 390, title: 'The Frozen Surprise - KikoRiki' },
-      { id: '9ZZ4BTeG0DM', duration: 390, title: 'Soccer Game, 1st Half - KikoRiki' },
-      { id: 'KD5eMB1sOlI', duration: 390, title: 'Soccer Game, 2nd Half - KikoRiki' },
-      { id: 'BMXwY2wCLZo', duration: 390, title: 'The Chill - KikoRiki' },
-      { id: 'hCAuCjA-6MY', duration: 390, title: 'Dream Maker - KikoRiki' },
-      { id: 'DR43m1HARVo', duration: 390, title: 'In The Beginning Was The Word - KikoRiki' },
-      { id: 'hNtP93TGsCE', duration: 390, title: 'Barry\'s Hives - KikoRiki' },
-      { id: 'BlWq04iGeM4', duration: 390, title: 'Lucky Stars - KikoRiki' },
-      { id: 'nAzbu9EAbj8', duration: 390, title: 'The Flash Mob Boss - KikoRiki' },
-      { id: 'pVYwfG15Lzk', duration: 390, title: 'The Gift - KikoRiki' },
-      { id: '4my9aJo2EsY', duration: 390, title: 'A Big Share - KikoRiki' },
-      { id: 'vzBjGy-g93s', duration: 390, title: 'The Savage Clone - KikoRiki' },
-      { id: 'iaTOHIKHCI8', duration: 390, title: 'Maternal Instinct - KikoRiki' },
-      { id: 'wbarYIL8Fio', duration: 390, title: 'Pancake Week - KikoRiki' },
-      { id: 'wTK_zNUtzrY', duration: 390, title: 'Enter Chikorini - KikoRiki' },
-      { id: '45qTq9YHDDc', duration: 390, title: 'Oh, to be a Great Poet! - KikoRiki' },
-      { id: 'Nx2VIxkML5E', duration: 390, title: 'Chiko and His Health - KikoRiki' },
-      { id: 'ky9WJ589NOY', duration: 390, title: 'Bye Bye, Bibi - KikoRiki' },
-      { id: 'mwNH9EwnJTw', duration: 390, title: 'My Precious - KikoRiki' },
-      { id: 'ywhm5ox5Pxw', duration: 390, title: 'Making Progress… - KikoRiki' },
-      { id: 'UBDeks-0ONg', duration: 390, title: 'The Masquerade - KikoRiki' },
-      { id: 'EFLsMKlTGwI', duration: 390, title: 'The Boycott - KikoRiki' },
-      { id: 'JtHUERIQkus', duration: 390, title: 'Bibi\'s Vacation - KikoRiki' },
-      { id: 'odfCnJEuUUU', duration: 390, title: 'Space Odyssey. Part 1 - KikoRiki' },
-      { id: 'ZYbngEO9LQg', duration: 390, title: 'Space Odyssey, Part 2 - KikoRiki 2D' },
-      { id: 'fuNcM_LQEFI', duration: 390, title: 'Bad Omens - KikoRiki' },
-      { id: 'KzweKwYwt6Y', duration: 390, title: 'Private Life - KikoRiki' },
-      { id: 'K0oU2bP5Y6Q', duration: 390, title: 'Love Letters - KikoRiki' },
-      { id: 'sA8lBLGWahw', duration: 390, title: 'Add Snow, Subtract a Fir Tree - KikoRiki' },
-      { id: 'fJ6jnnpS7KU', duration: 390, title: 'Her Name Was Rosa - KikoRiki' },
-      { id: 'O5By5mMZ92I', duration: 390, title: 'Chiko in the Fog - KikoRiki' },
-      { id: 'XkrmRWVCfok', duration: 390, title: 'Locked Up - KikoRiki' },
-      { id: 'vN6odKJF5DQ', duration: 390, title: 'Line of Fortune - KikoRiki' },
-      { id: 'nER9c09815s', duration: 390, title: 'The Truffle - KikoRiki' },
-      { id: '93P4KwmdHQk', duration: 390, title: 'The Realist - KikoRiki' },
-      { id: '3gQHjU60I2U', duration: 390, title: 'The Anonym - KikoRiki' },
-      { id: '_fOEu9m7H-M', duration: 390, title: 'What Wishes May Come - KikoRiki' },
-      { id: '3fH4hUTvO-Q', duration: 390, title: 'The Ends of the Earth - KikoRiki' },
-      { id: '1BrHyNrvVnM', duration: 390, title: 'A Run of Bad Luck - KikoRiki' },
-      { id: 'EruPowmoVfM', duration: 390, title: 'Gastronomy - KikoRiki' },
-      { id: 'R3Xi65Vi470', duration: 390, title: 'Houdini\'s Secret - KikoRiki' },
-      { id: 'tE7-PSvq7cg', duration: 390, title: 'The Room of Melancholy - KikoRiki' },
-      { id: 'qYtmArZWX1E', duration: 390, title: 'Out of Balance - KikoRiki' },
-      { id: '4Z8-heeqhMY', duration: 390, title: 'Hero of Pluto - KikoRiki' },
-      { id: '4w7LNRSsLNk', duration: 390, title: 'The Meaning of Life - KikoRiki' }
-    ]
-  },
-  {
-    name: "Вайб!",
-    logo: "https://lh3.googleusercontent.com/d/1UDjAWQ26hCgvtE4v18xwfVZX0keq0Mp8",
-    schedule: [
-      { id: 'vZf1oXNFFG4', duration: 2596, title: 'Майнкрафт наизнанку: Суперсилы | 13+' },
-      { id: 'vZf1oXNFFG4', duration: '8:57', title: 'Майнкрафт наизнанку. Приключения AleKS`а: Начало | 13+' },
-      { id: 'vZf1oXNFFG4', duration: '9:06', title: 'Майнкрафт наизнанку. Приключения AleKS`а 2: Секретный проход | 13+' },
-      { id: 'lSYlSigNT-k', duration: 5094, title: 'Яндекс.Колонка с Алисой | 18+' },
-      { id: 'WULuYBNSNN8', duration: 623, title: 'Дети-супергерои. 1 сезон | 13+' },
-      { id: '2TMzfMRX7VQ', duration: 722, title: 'Дети-супергерои. 2 сезон | 13+' },
-      { id: 'HnvcJcKkRgI', duration: '9:43', title: 'Дети-супергерои. 3 сезон | 13+' },
-      { id: 'hHLk6fi0BCuE', duration: '13:48', title: 'Фрэгас | 11+' },
-      { id: 'IiyvR7k-oaQ', duration: 732, title: 'Кошки | 13+' },
-      { id: 'MWmcBlp1hdw', duration: 757, title: 'Кошки. Нападение мышей | 13+' },
-      { id: 'fdDof2tYAdA', duration: 732, title: 'Кошки. Битва за роутер | 13+' },
-      { id: 'zNlUjPth92s', duration: "39:40", title: 'Кошки. Фильм | 13+' },
-      { id: 'hxFqD7rFCHY', duration: "11:27", title: 'Кошки. Весенние приключения | 13+' },
-      { id: 'KOrXH4P2lYM', duration: "11:57", title: 'Кошки. Лапа помощи | 13+' },
-      { id: 'qzGM2tzbPZM', duration: "11:41", title: 'Кошки и хозяева | 13+' },
-      { id: 'M39ibSy85iw', duration: "12:09", title: 'Кошки. Ой, милота! | 13+' },
-      { id: 'YuWeWcgdiHU', duration: "11:52", title: 'Кошки. Шерстяные клубки | 13+' },
-      { id: '-s1wllkcJY8', duration: "13:08", title: 'Кошки. Веселые истории | 13+' },
-      { id: 'O0l7Obz5GDM', duration: "13:52", title: 'Кошки. Юбилейный сезон | 13+' },
-      { id: 'vvpYz6GNFbw', duration: "1:12:50", title: 'Специальная серия влогов | 13+' },
-      { id: 'yOdZ-eBnk5o', duration: "1:52:47", title: 'Специальная серия влогов. Питер | 13+' },
-      { id: 'TOeAkmS8j2s', duration: "39:04", title: 'НейроМузAleKS | 15+' },
-      { id: 'Gn2-lKghcO8', duration: "41:03", title: 'НейроМузAleKS. Новая волна | 15+' },
-      { id: 'X98laQopxX4', duration: "1:00:24", title: 'Приключения, Дачные приключения, Азбука Ютуберов, МультКлипы | 11+' },
-      { id: '9Pyr5Dfw1B0', duration: '31:57', title: 'Майнкрафт наизнанку | 13+' },
-      { id: 'ruiyqHyhqfM', duration: '31:57', title: 'Майнкрафт наизнанку 2. 1 сезон | 13+' },
-      { id: 'o1Pv19WZNOg', duration: '30:30', title: 'Майнкрафт наизнанку 2. 2 сезон. 1-5 серии | 13+' },
-      { id: 'Y2RQzntJ3rY', duration: '7:24', title: 'Майнкрафт наизнанку 2. 2 сезон. 6 серия | 13+' },
-      { id: 'nLlGqd7IddY', duration: 1246, title: 'Майнкрафт наизнанку: Последний перезапуск | 13+' },
-      { id: 'uBEY2TBJ4xo', duration: 1246, title: 'Майнкрафт наизнанку: Путешествие | 13+' },
-      { id: 'hBYW8uaiCDq0', duration: 1372, title: 'Майнкрафт наизнанку: Город | 13+' },
-      { id: 'rom5GpRXHJo', duration: 1247, title: 'Майнкрафт наизнанку: Новые приключения | 13+' }
-    ]
+document.addEventListener('keydown', function(e) {
+  if (
+    e.keyCode === 123 || 
+    (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) || 
+    (e.ctrlKey && (e.keyCode === 85 || e.keyCode === 83 || e.keyCode === 80))
+  ) {
+    e.preventDefault();
+    return false;
   }
-];
+});
 
-const CHANNELS = RAW_CHANNELS.map(c => ({
-  ...c, schedule: c.schedule.map(i => ({ ...i, duration: parseDuration(i.duration) }))
-}));
+// База расписаний для разных версий
+const SCHEDULES = {
+  main: [
+    { id: 'ZZgJ0QhOe44', duration: 3670, title: 'Смешарики. Часть 1' },
+    { id: 'c8Zy62mdYfA', duration: 3673, title: 'Смешарики. Часть 2' },
+    { id: 'thaqccB0Duk', duration: 3660, title: 'Смешарики. Часть 3' },
+    { id: 'bnpKzdPuPqQ', duration: 3649, title: 'Смешарики. Часть 4' },
+    { id: 'hTA3CewckcI', duration: 3652, title: 'Смешарики. Часть 5' },
+    { id: 'Sh-3gT0KPKo', duration: 3653, title: 'Смешарики. Часть 6' },
+    { id: 'baSCMw-2qt8', duration: 3651, title: 'Смешарики. Часть 7' },
+    { id: 'rXtaU_yitlQ', duration: 3657, title: 'Смешарики. Часть 8' },
+    { id: 'LilMEk7sV7I', duration: 3641, title: 'Смешарики. Часть 9' },
+    { id: 'r7FdLk6D33U', duration: 3666, title: 'Смешарики. Часть 10' },
+    { id: 'pOWbR8Lt2Fk', duration: 3659, title: 'Смешарики. Часть 11' },
+    { id: 'b0WgAMA82sE', duration: 3661, title: 'Смешарики. Часть 12' },
+    { id: 'Nt0xnw022i8', duration: 3664, title: 'Смешарики. Часть 13' },
+    { id: 'i3J6i3xM32Y', duration: 3663, title: 'Смешарики. Часть 14' },
+    { id: 'N0mnyfrz_Kc', duration: 4043, title: 'Смешарики. Часть 15' },
+    { id: 'Z96u0zQ1NcY', duration: 3654, title: 'Смешарики. Часть 16' },
+    { id: 'QED0t7sm8Fs', duration: 3675, title: 'Смешарики. Часть 17' },
+    { id: 'O6jZrq60wVw', duration: 3655, title: 'Смешарики. Часть 18' },
+    { id: 'VFm3ngb3KDw', duration: 3662, title: 'Смешарики. Часть 19' },
+    { id: 'QIauHSawzog', duration: 3670, title: 'Смешарики. Часть 20' },
+    { id: 'kBKonWmRAjc', duration: 4749, title: 'Смешарики. Часть 21' },
+    { id: 'rEbSRebPl3c', duration: 2216, title: 'Смешарики Новый сезон. Часть 1' },
+    { id: 'SjVLjlzTD1I', duration: 2205, title: 'Смешарики Новый сезон. Часть 2' },
+    { id: '4jPFiWxEcsU', duration: 2207, title: 'Смешарики Новый сезон. Часть 3' },
+    { id: 'HxIN8bdK6MI', duration: 2201, title: 'Смешарики Новый сезон. Часть 4' },
+    { id: 'aYwyJoatNjI', duration: 2241, title: 'Смешарики Новый сезон. Часть 5' },
+    { id: 'Qf9MTm7oMuo', duration: 2374, title: 'Смешарики Новый сезон. Часть 6' },
+    { id: 'PrbRDdP_3xw', duration: 2385, title: 'Смешарики Новый сезон. Часть 7' },
+    { id: 'wtuZsM8AaB0', duration: 2399, title: 'Смешарики Новый сезон. Часть 8' },
+    { id: 'XvIpzwUh218', duration: 2003, title: 'Смешарики Новый сезон. Часть 9' },
+    { id: 'GmMmHxCRXLo', duration: 2384, title: 'Смешарики Новый сезон. Часть 10' },
+    { id: 'pxeoZzd_Hqw', duration: 2394, title: 'Смешарики Новый сезон. Часть 11' },
+    { id: '8bfaNcERQBY', duration: 2394, title: 'Смешарики Новый сезон. Часть 12' },
+    { id: '9fVKFXAU2TM', duration: 2396, title: 'Смешарики Новый сезон. Часть 13' },
+    { id: 'b7n0erMVXz0', duration: 2434, title: 'Смешарики Новый сезон. Часть 14' },
+    { id: 'RCSja3_8gno', duration: 2396, title: 'Смешарики Новый сезон. Часть 15' },
+    { id: 'TAT4hpacgnc', duration: 2397, title: 'Смешарики Новый сезон. Часть 16' },
+    { id: 'Gxp4YOh3dSo', duration: 1596, title: 'Смешарики Новый сезон. Часть 17' },
+    { id: 'Nlr5f_IyHs4', duration: 2611, title: 'Смешарики Новый сезон. Часть 18' },
+    { id: 'P-q48fSvZdM', duration: 2578, title: 'Смешарики Новый сезон. Часть 19' },
+    { id: 'gs-MZg77o6w', duration: 6222, title: 'Смешарики снимают кино. Полнометражный фильм' },
+    { id: 'nOK0h7-5Hu0', duration: 3126, title: 'Фиксики. Часть 1' },
+    { id: 'dpiauz0DRio', duration: 4269, title: 'Фиксики. Часть 2' },
+    { id: 'aKOqDGHN6zw', duration: 3175, title: 'Фиксики. Часть 3' },
+    { id: 'p0CRUaxSzos', duration: 3181, title: 'Фиксики. Часть 4' },
+    { id: '-NfxQCAEuQ0', duration: 3175, title: 'Фиксики. Часть 5' },
+    { id: 'ymSwedLlQag', duration: 3651, title: 'Фиксики. Часть 6' },
+    { id: 'u5jjVvEvED8', duration: 3645, title: 'Фиксики. Часть 7' },
+    { id: 'mludCeHwp6M', duration: 3634, title: 'Фиксики. Часть 8' },
+    { id: 'JidMrZfwS6E', duration: 3650, title: 'Фиксики. Часть 9' },
+    { id: 'LEFAnvb0A2Y', duration: 3613, title: 'Фиксики. Часть 10' },
+    { id: 'iKToH5nt82Y', duration: 3630, title: 'Фиксики. Часть 11' },
+    { id: '2sZoMT7ASdE', duration: 3664, title: 'Фиксики. Часть 12' },
+    { id: '9666mtwGYd0', duration: 3646, title: 'Фиксики. Часть 13' },
+    { id: 'wXNeGMG2PeQ', duration: 3601, title: 'Фиксики. Часть 14' },
+    { id: '6tlME_HgGcc', duration: 3634, title: 'Фиксики. Часть 15' },
+    { id: 'BTXiIcC8t1s', duration: 3640, title: 'Фиксики. Часть 16' },
+    { id: 'NgS5Y3Z6L5Y', duration: 3780, title: 'Фиксики. Часть 17' },
+    { id: 'kk7gYDVXhwU', duration: 3767, title: 'Фиксики. Часть 18' },
+    { id: '01KgLgevgYo', duration: 3743, title: 'Фиксики. Часть 19' },
+    { id: 'XsQkIu9lsMs', duration: 3724, title: 'Фиксики. Часть 20' },
+    { id: 'Wa_s7wWdvio', duration: 3724, title: 'Фиксики. Часть 21' },
+    { id: 'NtGWRWtlDcY', duration: 3694, title: 'Фиксики. Часть 22' },
+    { id: 'weHtYO8T038', duration: 4281, title: 'Фиксики. Часть 23' },
+    { id: 'Ym4DOQynP-4', duration: 4290, title: 'Фиксики. Часть 24' },
+    { id: 'LiF6VClY8EU', duration: 4278, title: 'Фиксики. Часть 25' },
+    { id: '7pNe4f6xjsM', duration: 4273, title: 'Фиксики. Часть 26' },
+    { id: 'vdmnIIQdn8E', duration: 4012, title: 'Фиксики. Часть 27' },
+    { id: 'iVRbH_-Bdvo', duration: 4186, title: 'Барбоскины. Часть 1' },
+    { id: '_ZO5VEEWdX4', duration: 4180, title: 'Барбоскины. Часть 2' },
+    { id: 'ngdtGvLISOk', duration: 4238, title: 'Барбоскины. Часть 3' },
+    { id: 'LBTqMuXNam4', duration: 4213, title: 'Барбоскины. Часть 4' },
+    { id: 'PWrHBxn-Ero', duration: 4200, title: 'Барбоскины. Часть 5' },
+    { id: '9CDdPPlsUkk', duration: 4205, title: 'Барбоскины. Часть 6' },
+    { id: 'BGl3stSRuZU', duration: 4264, title: 'Барбоскины. Часть 7' },
+    { id: '3PFMy0KUqOc', duration: 4235, title: 'Барбоскины. Часть 8' },
+    { id: 'eg_rlPU5nU0', duration: 4136, title: 'Барбоскины. Часть 9' },
+    { id: 'gtS9ljoTxPk', duration: 2215, title: 'Барбоскины. Часть 10' },
+    { id: 'yslXg3Fig9I', duration: 2223, title: 'Барбоскины. Часть 11' },
+    { id: '_IoxEwUfDiY', duration: 1964, title: 'Барбоскины. Часть 12' },
+    { id: '470QBDC99X0', duration: 2257, title: 'Барбоскины. Часть 13' },
+    { id: 'yc0D8cQc8tU', duration: 2263, title: 'Барбоскины. Часть 14' },
+    { id: 'HYuqWJsikYA', duration: 2241, title: 'Барбоскины. Часть 15' },
+    { id: 'Ce8ypKo6bE4', duration: 2226, title: 'Барбоскины. Часть 16' },
+    { id: 'dhIl9KiMrTI', duration: 2225, title: 'Барбоскины. Часть 17' },
+    { id: '2UpeA74wnoE', duration: 2215, title: 'Барбоскины. Часть 18' },
+    { id: 'uriXIjs5U18', duration: 2507, title: 'Маша и Медведь. Часть 1' },
+    { id: 'ocsOiR_zlHc', duration: 2041, title: 'Маша и Медведь. Часть 2' },
+    { id: 'F4iyIpEEp6k', duration: 1657, title: 'Маша и Медведь. Часть 3' },
+    { id: 'f2ZHGXfc1Yg', duration: 2064, title: 'Маша и Медведь. Часть 4' },
+    { id: '7guS5DH4l7w', duration: 2074, title: 'Маша и Медведь. Часть 5' },
+    { id: 'T5gSuIP618g', duration: 2492, title: 'Маша и Медведь. Часть 6' },
+    { id: '93xuP93UOng', duration: 2082, title: 'Маша и Медведь. Часть 7' },
+    { id: 'zJT0LvxPbqw', duration: 2071, title: 'Маша и Медведь. Часть 8' },
+    { id: 'MYbFnk9mEZo', duration: 2133, title: 'Маша и Медведь. Часть 9' },
+    { id: '_2yU3dWzGd8', duration: 2019, title: 'Маша и Медведь. Часть 10' },
+    { id: 'SGvYHxaFrSU', duration: 2114, title: 'Маша и Медведь. Часть 11' },
+    { id: '8chxDXbhKEM', duration: 2102, title: 'Маша и Медведь. Часть 12' },
+    { id: 'fFZrDWsgf5Y', duration: 2168, title: 'Маша и Медведь. Часть 13' },
+    { id: 'xqz808j0GKw', duration: 2180, title: 'Маша и Медведь. Часть 14' },
+    { id: 'Q3Pfmtil-G0', duration: 2204, title: 'Маша и Медведь. Часть 15' }
+  ],
+  int: [
+    { id: '-W2tJmIJltg', duration: 390, title: 'KikOriki : 1 - The Bench!', track: 'ru' },
+    { id: 'LAisXiVwJqM', duration: 390, title: 'The Bench  - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'rL8u4Y6holg', duration: 390, title: 'Принц для Нюши - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: '8dQKVcIEx8k', duration: 390, title: 'A Price for Rosa - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'U13KJMaJKk8', duration: 390, title: 'Куда уходит Старый год? - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'XmFBAHKXflk', duration: 390, title: 'Past Year\'s Tale - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'oC27Mz_0r2A', duration: 390, title: 'Фанерное солнце - Смешарики 2D |Мультфильмы для детей', track: 'ru' },
+    { id: 'NXQ5gZs4KDw', duration: 390, title: 'The Plywood Sun - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: '2s2pM5aAfBc', duration: 390, title: 'Энергия храпа - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'RbhLEoNQ5jE', duration: 390, title: 'The Energy of Snoring - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'odbwz_86Xvg', duration: 390, title: 'Железная няня - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'Wwj_Np2krWE', duration: 390, title: 'The Iron Nanny - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'Rc84ZglMJVY', duration: 390, title: 'Подарок судьбы - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'p3aROKB7HmA', duration: 390, title: 'The Gift of Fortune - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'IZ2BQ0lQQv0', duration: 390, title: 'Кто первый? - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: '-n2ue8uVc-I', duration: 390, title: 'Who\'s the First - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'DYgaq4lJd00', duration: 390, title: 'Некультурный - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'gcJhXazZoE8', duration: 390, title: 'The Uncultivated - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: '-DzwOFVaMmQ', duration: 390, title: 'Забытая история - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'bDk2PgAq1Oo', duration: 390, title: 'The Forgotten Tale - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'JMCnGTNwXX0', duration: 390, title: 'Рояль - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'dOJotQO4cpQ', duration: 390, title: 'The Grand Piano - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'wVH6vZiWrl8', duration: 390, title: 'Как собрать друзей по-быстрому - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'ach7nzmNV3w', duration: 390, title: 'Fast Friends - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'B6qZlPXe_a4', duration: 390, title: 'Телеграф - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: '8EhgI6P5Y1o', duration: 390, title: 'The Telegraph - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'wC-mrwnfQZ0', duration: 390, title: 'Коллекция - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'c7cWIEGJ5Lo', duration: 390, title: 'The Collection - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'oGelCZ_cG1g', duration: 390, title: 'Лили - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: '5auHyKAGLFc', duration: 390, title: 'Lily - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'rqAMbxbXr4c', duration: 390, title: 'Биография зонтика - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'PvYMeqTbeBE', duration: 390, title: 'Memoirs of an Umbrella - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'qpw-7O72DP8', duration: 390, title: 'Ля - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'mtCNmjMOgM4', duration: 390, title: 'La - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'Iu9y-2nEAG0', duration: 390, title: 'Путь в приличное общество - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'HubI3CPqjzI', duration: 390, title: 'The Path to Decent Society - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'wvU2Y946C58', duration: 390, title: 'День рождения Нюши - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'k_f46__zJp8', duration: 390, title: 'Rosa\'s Birthday - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'D25OYJ4hdys', duration: 390, title: 'Гольф - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'BOP50yM2mx0', duration: 390, title: 'Golf - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: '38a0f-fXZCc', duration: 390, title: 'Полёты во сне и наяву - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'GCSkbFzNjrw', duration: 390, title: 'Flying in a Dream and in Reality - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'pCdly8Bm5YY', duration: 390, title: 'Событие века - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'jniS9_x_bh4', duration: 390, title: 'The Big Event - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'UsYe59gDCOI', duration: 390, title: 'Как стать звездой - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'srSTMJr8M7U', duration: 390, title: 'How to Become a Star - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: '7F6eE0w4SWE', duration: 390, title: 'Новые зубы Кроша  - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: '3lRRrsLjeQA', duration: 390, title: 'Krash\'s New Teeth - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: '8I1JS1cC8Mw', duration: 390, title: 'Балласт - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'qowqgzNQNgo', duration: 390, title: 'BallAst - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'ociddcCFe2Y', duration: 390, title: 'Рецепт хорошего отдыха - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'yGDj0lSO3qk', duration: 390, title: 'How to Have a Good Rest - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'okjt6KBVvaw', duration: 390, title: 'Водные процедуры - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'QQtvQZooePU', duration: 390, title: 'Bath Procedures - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: '1z8nmmFj8EQ', duration: 390, title: 'Красота - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'LmN6grp_-YI', duration: 390, title: 'Beauty - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'jWwvuKaFsJc', duration: 390, title: 'Последняя радуга - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'j6TgelKfx5s', duration: 390, title: 'The Last Rainbow - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'pUuSRISUpEQ', duration: 390, title: 'Большие гонки - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: '7GuhBvjaf4Y', duration: 390, title: 'The Big Race - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'WXjUaWMOOQw', duration: 390, title: 'Магнетизм - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'IHleSacxobo', duration: 390, title: 'Magnetism - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'rhRexgFZ00A', duration: 390, title: 'Тайное общество - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'xGyhau3UNrA', duration: 390, title: 'The Secret Society - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'rrgiVX5ulV0', duration: 390, title: 'Что нужно всем - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: '7twy4RqIZv8', duration: 390, title: 'What Everybody Needs - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'USMZm1QLPXs', duration: 390, title: 'Торжество разума - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: '1sQab2U9nd0', duration: 390, title: 'The Triumph of Reason - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'deSfIYuukCk', duration: 390, title: 'Живые часы - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'idD6eGe0G7k', duration: 390, title: 'The Inner Clock - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'ciq8VPeJHcI', duration: 390, title: 'Это сладкое слово "мёд" - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'JzeGBl_7ge0', duration: 390, title: 'The Sweetness of Honey - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'Ggp6bUL23mk', duration: 390, title: 'Играй, Гармония! - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'QPvANseA7Zw', duration: 390, title: 'In Sweet Harmony - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'QSKYQKJq0ME', duration: 390, title: 'Горы и конфеты - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'gKEong7fgQo', duration: 390, title: 'Mountains and Candies - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'j0TT6ZHxp0s', duration: 390, title: 'Талисман - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'unMfMGjKgos', duration: 390, title: 'The Lucky Talisman - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'x3HBYvvYufk', duration: 390, title: 'Страшилка для Нюши - Смешарики 2D  | Мультфильмы для детей', track: 'ru' },
+    { id: 'qm8dJ0YPfeI', duration: 390, title: 'A Story for Rosa - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 't8iggRi0MSU', duration: 390, title: 'Маленькое большое Море - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'BuUwqaK5bKg', duration: 390, title: 'Little Big Sea - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'M4a5U9AIeac', duration: 390, title: 'Операция Дед мороз - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'skSafBPN2ZE', duration: 390, title: 'Operation Santa Claus - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'VEORBPrwuto', duration: 390, title: 'Думают ли о Вас На звёздах? - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'p4aGetQedUI', duration: 390, title: 'Admirers in the Sky - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'pwEc7d0eUdg', duration: 390, title: 'Приятные новости - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'OU84t0_Odx8', duration: 390, title: 'Great News - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'fgGz-tIF43c', duration: 390, title: 'Бабочка - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: '8EkiEGc5O0E', duration: 390, title: 'The Butterfly - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'yhz_tbfoPNk', duration: 390, title: 'Археология - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'ElkRcZF7zvY', duration: 390, title: 'Archaeology - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'HA2BbmebIDc', duration: 390, title: 'Метеорология - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'jWu16WgIL6k', duration: 390, title: 'Meteorology - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'iszyng98aLo', duration: 390, title: 'Танцор Диско - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'fL8ZtcisebU', duration: 390, title: 'The Disco Dancer - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'gPrfogZBys0', duration: 390, title: 'Мыльная опера - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'tzUdU7HmHBE', duration: 390, title: 'Soap Opera - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'qPWSgPVNZq0', duration: 390, title: 'Долгая рыбалка - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'Ww9qbDhrk60', duration: 390, title: 'Fishing Trip - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'iXQ81zQzw0Y', duration: 390, title: 'Ремонт - дело коллективное - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'Zexsuc2_J2M', duration: 390, title: 'Remodeling is a Collective Effort - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: '47qA-RMRtVc', duration: 390, title: 'Обещание - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'ZoG5COePvKE', duration: 390, title: 'The Promise - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'PZRBcDn1BOM', duration: 390, title: 'Педагогическая поэма - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'dNblS5z3AAg', duration: 390, title: 'Training for a Nap - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'ngGOhNnkVd8', duration: 390, title: 'Прощай, Бараш! - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: '2PqMkmxQQU0', duration: 390, title: 'Bon Voyage, Wally! - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: '-DzuecgGawo', duration: 390, title: 'Мисс Вселенная - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: '7kPVKpf8KQ8', duration: 390, title: 'Beauty Queen - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: '9IsFUwqf188', duration: 390, title: '-41°С - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'SoeNkuc20oI', duration: 390, title: 'The Frozen Surprise - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: '9HkNyA55I70', duration: 390, title: 'Футбол 1-й тайм  - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: '9ZZ4BTeG0DM', duration: 390, title: 'Soccer Game, 1st Half - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'XwOtseL3btw', duration: 390, title: 'Футбол 2-ой тайм - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'KD5eMB1sOlI', duration: 390, title: 'Soccer Game, 2nd Half - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'MfdSBO1IPYo', duration: 390, title: 'ОРЗ - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'BMXwY2wCLZo', duration: 390, title: 'The Chill - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'ifkQmUwx_QI', duration: 390, title: 'Снотворец - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'hCAuCjA-6MY', duration: 390, title: 'Dream Maker - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: '2tkSZRrMRQE', duration: 390, title: 'В начале было слово - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'DR43m1HARVo', duration: 390, title: 'In The Beginning Was The Word - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'yOfYwFdqOVU', duration: 390, title: 'Ульи Копатыча - Смешарики 2D  | Мультфильмы для детей', track: 'ru' },
+    { id: 'hNtP93TGsCE', duration: 390, title: 'Barry\'s Hives - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'TFYm7jOwhnM', duration: 390, title: 'День справедливости - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'BlWq04iGeM4', duration: 390, title: 'Lucky Stars - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'I5mNfhsimfA', duration: 390, title: 'Кордебалет - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'nAzbu9EAbj8', duration: 390, title: 'The Flash Mob Boss - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'ywkGQskUbFk', duration: 390, title: 'Дар - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'pVYwfG15Lzk', duration: 390, title: 'The Gift - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'PYz64y9Ue-k', duration: 390, title: 'Большой куш - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: '4my9aJo2EsY', duration: 390, title: 'A Big Share - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'ey-7n-dNUIs', duration: 390, title: 'Невоспитанный клон - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'vzBjGy-g93s', duration: 390, title: 'The Savage Clone - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'KSkaA0406Kw', duration: 390, title: 'Основной инстинкт - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'iaTOHIKHCI8', duration: 390, title: 'Maternal Instinct - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'MTlwV2Yj1RI', duration: 390, title: 'Масленица - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'wbarYIL8Fio', duration: 390, title: 'Pancake Week - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'm4VFGJXr27g', duration: 390, title: 'Ежидзе - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'wTK_zNUtzrY', duration: 390, title: 'Enter Chikorini - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'BX_WEjnr0_4', duration: 390, title: 'Как здорово сочинять стихи - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: '45qTq9YHDDc', duration: 390, title: 'Oh, to be a Great Poet! - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'iFU3cuX31F8', duration: 390, title: 'Ёжик и здоровье - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'Nx2VIxkML5E', duration: 390, title: 'Chiko and His Health - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'uJxO8TMj-uI', duration: 390, title: 'Биби и его папа - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'ky9WJ589NOY', duration: 390, title: 'Bye Bye, Bibi - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'bKsPf-TZmOQ', duration: 390, title: 'Моя прелесть - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'mwNH9EwnJTw', duration: 390, title: 'My Precious - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'mNmG6dmToEc', duration: 390, title: 'Двигатель прогресса - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'ywhm5ox5Pxw', duration: 390, title: 'Making Progress… - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'cXlM3ofUqKw', duration: 390, title: 'Маскарад - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'UBDeks-0ONg', duration: 390, title: 'The Masquerade - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'nAhLGJHHdlQ', duration: 390, title: 'Бойкот - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'EFLsMKlTGwI', duration: 390, title: 'The Boycott - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'yfPjfVryjMc', duration: 390, title: 'Каникулы Биби - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'JtHUERIQkus', duration: 390, title: 'Bibi\'s Vacation - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'li2r8KszZno', duration: 390, title: 'Космическая одиссея. Часть 1 - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'odfCnJEuUUU', duration: 390, title: 'Space Odyssey. Part 1 - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'opp3DPHlYZ4', duration: 390, title: 'Космическая одиссея. Часть 2 - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'ZYbngEO9LQg', duration: 390, title: 'Space Odyssey, Part 2 - KikoRiki 2D | Cartoon for Kids', track: 'en' },
+    { id: 'HVTilP58rCg', duration: 390, title: 'Скверная примета - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'fuNcM_LQEFI', duration: 390, title: 'Bad Omens - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: '2kXxiuPzsg4', duration: 390, title: 'Личная жизнь - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'KzweKwYwt6Y', duration: 390, title: 'Private Life - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'laQnmjBrd2o', duration: 390, title: 'Роман в письмах - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'K0oU2bP5Y6Q', duration: 390, title: 'Love Letters  - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: '9GYbnREDGTo', duration: 390, title: 'Плюс снег, минус елка - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'sA8lBLGWahw', duration: 390, title: 'Add Snow, Subtract a Fir Tree - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'i-9FtF6ToPg', duration: 390, title: 'Её звали Нюша - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'fJ6jnnpS7KU', duration: 390, title: 'Her Name Was Rosa - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'dVYKNtI4UOA', duration: 390, title: 'Ежик в Туманности - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'O5By5mMZ92I', duration: 390, title: 'Chiko in the Fog - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'KI7ytiGgeLs', duration: 390, title: 'Взаперти - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'XkrmRWVCfok', duration: 390, title: 'Locked Up - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: '4ubFiAp3vLw', duration: 390, title: 'Линии судьбы - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'vN6odKJF5DQ', duration: 390, title: 'Line of Fortune - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: '0yMer_OQi4c', duration: 390, title: 'Трюфель - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'nER9c09815s', duration: 390, title: 'The Truffle - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: '5KtKMLCsA-k', duration: 390, title: 'Реалист - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: '93P4KwmdHQk', duration: 390, title: 'The Realist - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'XZiIAsNInPg', duration: 390, title: 'Аноним - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: '3gQHjU60I2U', duration: 390, title: 'The Anonym - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'lK3xzYGej8w', duration: 390, title: 'Куда приводят желания - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: '_fOEu9m7H-M', duration: 390, title: 'What Wishes May Come - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'ptOc6UfJY4c', duration: 390, title: 'Край земли - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: '3fH4hUTvO-Q', duration: 390, title: 'The Ends of the Earth - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'zzfubODk_8E', duration: 390, title: 'Полоса невезения - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: '1BrHyNrvVnM', duration: 390, title: 'A Run of Bad Luck - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'SNGSx1Xp5Ro', duration: 390, title: 'Кулинария - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'EruPowmoVfM', duration: 390, title: 'Gastronomy - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: '9hMZwwa9Xek', duration: 390, title: 'Секрет Гудини - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'R3Xi65Vi470', duration: 390, title: 'Houdini\'s Secret - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'nOTaxfOEfrE', duration: 390, title: 'Комната грусти - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'tE7-PSvq7cg', duration: 390, title: 'The Room of Melancholy - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'fXck-6OLaNM', duration: 390, title: 'Вестибулярный аппарат - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: 'qYtmArZWX1E', duration: 390, title: 'Out of Balance - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'sZusnhp0Guc', duration: 390, title: 'Герой Плутона - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: '4Z8-heeqhMY', duration: 390, title: 'Hero of Pluto - KikoRiki | Cartoon for Kids', track: 'en' },
+    { id: 'Pjxr08Cw59w', duration: 390, title: 'Смысл жизни - Смешарики 2D | Мультфильмы для детей', track: 'ru' },
+    { id: '4w7LNRSsLNk', duration: 390, title: 'The Meaning of Life - KikoRiki | Cartoon for Kids', track: 'en' }
+  ]
+};
 
-let curChan = 0, player = null, muted = true, curIdx = -1;
+let currentVersion = 'main';
+let currentAudioTrack = 'ru';
 
-function renderList() {
-  const list = document.getElementById('channel-list');
-  list.innerHTML = CHANNELS.map((c, i) => `
-    <button class="channel-btn ${i === curChan ? 'active' : ''}" onclick="switchChan(${i})">
-      <span class="name">${i + 1}. ${c.name}</span><span class="channel-num">LIVE</span>
-    </button>`).join('');
+let SCHEDULE = SCHEDULES.main;
+let TOTAL_DURATION = SCHEDULE.reduce((a, x) => a + x.duration, 0);
+
+var player = null, muted = false, currentIdx = -1, cycleOffset = 0;
+
+const DRIVE_ID_MAIN = '18xKX_FMnfQc555BHX40EppWZshSq0wK1';
+const DRIVE_ID_INT = '165GNzoFaaqjAd6f-NDtH7g1w8ZXph_7O';
+
+function getLogoUrl(driveId) {
+  return 'https://lh3.googleusercontent.com/d/' + driveId;
 }
 
-function getPos(sched) {
-  const total = sched.reduce((a, x) => a + x.duration, 0);
-  const nowSec = Math.floor(Date.now() / 1000);
-  let t = nowSec % total;
-  if (t < 0) t += total;
-
-  let acc = 0;
-  for (let i = 0; i < sched.length; i++) {
-    if (t < acc + sched[i].duration) {
-      return { idx: i, start: t - acc };
-    }
-    acc += sched[i].duration;
-  }
-  return { idx: 0, start: 0 };
-}
-
-function updateUI() {
-  const c = CHANNELS[curChan];
-  document.getElementById('watermark-logo-img').src = c.logo;
-  document.getElementById('header-brand').innerText = c.name;
-  document.getElementById('channel-footer-name').innerText = `Телеканал «${c.name}»`;
-  document.getElementById('overlay-title').innerText = `Телеканал «${c.name}»`;
-}
-
-function switchChan(i) {
-  curChan = i; curIdx = -1;
-  renderList(); updateUI();
-  const pos = getPos(CHANNELS[curChan].schedule);
-  curIdx = pos.idx;
+function updateLogos() {
+  const driveId = (currentVersion === 'int') ? DRIVE_ID_INT : DRIVE_ID_MAIN;
+  const url = getLogoUrl(driveId);
   
-  document.getElementById('now-title').innerText = CHANNELS[curChan].schedule[pos.idx].title;
-
-  if (player?.loadVideoById) {
-    player.loadVideoById({ videoId: CHANNELS[curChan].schedule[pos.idx].id, startSeconds: pos.start });
-  }
+  const img1 = document.getElementById('fullscreen-logo-img');
+  const img2 = document.getElementById('watermark-logo-img');
+  if(img1) img1.src = url;
+  if(img2) img2.src = url;
 }
 
-// Загрузка YT API
-var tag = document.createElement('script');
-tag.src = "https://www.youtube.com/iframe_api";
-document.head.appendChild(tag);
-
-function onYouTubeIframeAPIReady() {
-  renderList(); updateUI();
-  const pos = getPos(CHANNELS[curChan].schedule);
-  curIdx = pos.idx;
+function switchVersion(ver) {
+  currentVersion = ver;
   
-  document.getElementById('now-title').innerText = CHANNELS[curChan].schedule[pos.idx].title;
+  document.getElementById('btn-main').classList.toggle('active', ver === 'main');
+  document.getElementById('btn-int').classList.toggle('active', ver === 'int');
+  
+  const audioBar = document.getElementById('audio-tracks-bar');
+  audioBar.classList.toggle('visible', ver === 'int');
 
-  player = new YT.Player('player', {
-    videoId: CHANNELS[curChan].schedule[pos.idx].id,
-    playerVars: { autoplay: 1, controls: 0, disablekb: 1, fs: 0, rel: 0, modestbranding: 1, start: Math.floor(pos.start) },
-    events: { onReady: e => { e.target.mute(); e.target.playVideo(); setInterval(tick, 1000); } }
-  });
+  document.getElementById('channel-brand').innerText = (ver === 'int') ? 'SmeshTV International' : 'СмешТВ';
+  document.getElementById('footer-text').innerText = (ver === 'int') ? 'SmeshTV International · Live' : 'СмешТВ · прямой эфир';
+  document.getElementById('overlay-text').innerText = (ver === 'int') ? 'International Broadcast 24/7' : 'Эфир идёт круглосуточно';
+  document.getElementById('power-btn-text').innerText = (ver === 'int') ? '▶ Play Stream' : '▶ Включить эфир';
+
+  updateLogos();
+  reloadSchedule();
 }
 
-function startTV() {
-  player?.unMute();
-  player?.setVolume(100);
-  muted = false;
-  document.getElementById('mute-btn').innerText = '🔊 Звук';
-  document.getElementById('unmute-overlay').style.display = 'none';
-  document.getElementById('watermark-logo-img').classList.add('visible');
+function switchAudioTrack(track) {
+  currentAudioTrack = track;
+  document.getElementById('track-ru').classList.toggle('active', track === 'ru');
+  document.getElementById('track-en').classList.toggle('active', track === 'en');
+  reloadSchedule();
 }
 
-function toggleMute() {
-  if (!player) return;
-  muted = !muted;
-  muted ? player.mute() : player.unMute();
-  document.getElementById('mute-btn').innerText = muted ? '🔇 Звук' : '🔊 Звук';
+function reloadSchedule() {
+  if (currentVersion === 'main') {
+    SCHEDULE = SCHEDULES.main;
+  } else {
+    SCHEDULE = SCHEDULES.int.filter(item => item.track === currentAudioTrack);
+    if (SCHEDULE.length === 0) SCHEDULE = SCHEDULES.int;
+  }
+  
+  TOTAL_DURATION = SCHEDULE.reduce((a, x) => a + x.duration, 0);
+  currentIdx = -1;
+  
+  const pos = currentPosition();
+  currentIdx = pos.idx;
+  if (player && player.loadVideoById) {
+    player.loadVideoById({ videoId: SCHEDULE[currentIdx].id, startSeconds: pos.start });
+  }
 }
 
 function fmt(s) {
@@ -578,39 +535,152 @@ function fmt(s) {
   return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(sec).padStart(2, '0');
 }
 
-function tick() {
+var tag = document.createElement('script');
+tag.src = "https://www.youtube.com/iframe_api";
+var firstScriptTag = document.getElementsByTagName('script')[0];
+firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+function onYouTubeIframeAPIReady() {
+  updateLogos();
+  const pos = currentPosition();
+  currentIdx = pos.idx;
+  try {
+    player = new YT.Player('player', {
+      videoId: SCHEDULE[currentIdx].id,
+      playerVars: { 'autoplay': 1, 'controls': 0, 'disablekb': 1, 'fs': 0, 'rel': 0, 'start': Math.floor(pos.start) },
+      events: { 'onReady': onPlayerReady, 'onStateChange': onPlayerStateChange, 'onError': onPlayerError }
+    });
+  } catch(e) {
+    console.error(e);
+  }
+}
+
+let errorCount = 0;
+function onPlayerError(event) {
+  errorCount++;
+  if (errorCount > 5) {
+    console.error("Слишком много ошибок подряд.");
+    return;
+  }
+  setTimeout(() => { errorCount = 0; }, 10000);
+
+  currentIdx = (currentIdx + 1) % SCHEDULE.length;
+  const nextItem = SCHEDULE[currentIdx];
+  if(player && player.loadVideoById && nextItem) {
+    player.loadVideoById({ videoId: nextItem.id, startSeconds: 0 });
+  }
+}
+
+function totalSecondsSinceEpoch() {
+  const baseDate = new Date(2026, 0, 1, 0, 0, 0);
+  return Math.floor((Date.now() - baseDate.getTime()) / 1000);
+}
+
+function currentPosition() {
+  let t = (totalSecondsSinceEpoch() + cycleOffset) % TOTAL_DURATION;
+  if (t < 0) t += TOTAL_DURATION;
+  return findAt(t);
+}
+
+function findAt(t) {
+  let acc = 0;
+  for (let i = 0; i < SCHEDULE.length; i++) {
+    if (t < acc + SCHEDULE[i].duration) return { idx: i, start: t - acc, offset: t };
+    acc += SCHEDULE[i].duration;
+  }
+  return { idx: 0, start: 0, offset: 0 };
+}
+
+function onPlayerReady(event) {
+  event.target.mute();
+  event.target.playVideo();
+  setInterval(updateLive, 1000);
+}
+
+function startTV() {
+  if (player && player.unMute) {
+    player.unMute();
+    player.setVolume(100);
+    muted = false;
+    document.getElementById('mute-btn').innerText = '🔊';
+  }
+  const overlay = document.getElementById('unmute-overlay');
+  if (overlay) overlay.style.display = 'none';
+
+  fullscreen();
+}
+
+function toggleMute() {
+  if (!player) return;
+  if (muted) {
+    player.unMute();
+    muted = false;
+    document.getElementById('mute-btn').innerText = '🔊';
+  } else {
+    player.mute();
+    muted = true;
+    document.getElementById('mute-btn').innerText = '🔇';
+  }
+}
+
+function fullscreen() {
+  const screenEl = document.querySelector('.screen');
+  if (screenEl.requestFullscreen) {
+    screenEl.requestFullscreen();
+  } else if (screenEl.webkitRequestFullscreen) {
+    screenEl.webkitRequestFullscreen();
+  } else if (screenEl.msRequestFullscreen) {
+    screenEl.msRequestFullscreen();
+  }
+}
+
+// ПРИ ОКОНЧАНИИ ВИДЕО — СТРОГО СЛЕДУЮЩИЙ РОЛИК В ПЛЕЙЛИСТЕ
+function onPlayerStateChange(event) {
+  if (event.data === YT.PlayerState.ENDED) {
+    currentIdx = (currentIdx + 1) % SCHEDULE.length;
+    const nextItem = SCHEDULE[currentIdx];
+    if (player && player.loadVideoById) {
+      player.loadVideoById({ videoId: nextItem.id, startSeconds: 0 });
+    }
+  }
+}
+
+function updateLive() {
   const now = new Date();
   document.getElementById('clock').innerText = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
   document.getElementById('date').innerText = now.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
 
-  const c = CHANNELS[curChan];
-  const pos = getPos(c.schedule);
-  const item = c.schedule[pos.idx];
-  let curTime = player?.getCurrentTime ? player.getCurrentTime() : pos.start;
-  if (isNaN(curTime)) curTime = pos.start;
+  if (currentIdx < 0 || currentIdx >= SCHEDULE.length) return;
+  const item = SCHEDULE[currentIdx];
 
-  if (curIdx !== pos.idx) {
-    curIdx = pos.idx;
-    player?.loadVideoById?.({ videoId: item.id, startSeconds: pos.start });
-    document.getElementById('now-title').innerText = item.title;
-  }
+  // Обновляем название и блок «Далее»
+  document.getElementById('now-title').innerText = item.title;
+  
+  const curTime = player && player.getCurrentTime ? player.getCurrentTime() : 0;
+  const elapsed = curTime;
+  const remain = item.duration - curTime;
+  const pct = Math.min(100, Math.max(0, (elapsed / item.duration) * 100));
 
-  document.getElementById('prog').style.width = Math.min(100, (curTime / item.duration) * 100) + '%';
-  document.getElementById('elapsed').innerText = fmt(curTime);
-  document.getElementById('remain').innerText = 'осталось ' + fmt(item.duration - curTime);
+  document.getElementById('prog').style.width = pct + '%';
+  document.getElementById('elapsed').innerText = fmt(elapsed);
+  document.getElementById('remain').innerText = 'осталось ' + fmt(remain);
 
-  // Рендер блока "Далее"
+  renderNextList(currentIdx, remain);
+}
+
+function renderNextList(idx, currentRemain) {
   let html = '';
-  let accumulatedSeconds = item.duration - curTime;
-
   for (let i = 1; i <= 3; i++) {
-    const nextItem = c.schedule[(pos.idx + i) % c.schedule.length];
-    const targetTimeMs = Date.now() + (accumulatedSeconds * 1000);
-    const targetDate = new Date(targetTimeMs);
-    
-    html += `<div class="next-item"><span>${nextItem.title}</span><span class="when">~${String(targetDate.getHours()).padStart(2,'0')}:${String(targetDate.getMinutes()).padStart(2,'0')}</span></div>`;
-    
-    accumulatedSeconds += nextItem.duration;
+    const nextIdx = (idx + i) % SCHEDULE.length;
+    const nextItem = SCHEDULE[nextIdx];
+    let calcTime = currentRemain;
+    for (let j = 1; j < i; j++) {
+      const targetIdx = (idx + j) % SCHEDULE.length;
+      calcTime += SCHEDULE[targetIdx].duration;
+    }
+    const targetDate = new Date(Date.now() + calcTime * 1000);
+    const timeStr = String(targetDate.getHours()).padStart(2, '0') + ':' + String(targetDate.getMinutes()).padStart(2, '0');
+    html += `<div class="next-item"><span class="title">${nextItem.title}</span><span class="when">~${timeStr}</span></div>`;
   }
   document.getElementById('next-list').innerHTML = html;
 }
