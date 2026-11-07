@@ -502,11 +502,15 @@ function renderList() {
 
 function getPos(sched) {
   const total = sched.reduce((a, x) => a + x.duration, 0);
-  let t = Math.floor((Date.now() - Date.UTC(2026, 0, 1)) / 1000) % total;
+  const nowSec = Math.floor(Date.now() / 1000);
+  let t = nowSec % total;
   if (t < 0) t += total;
+
   let acc = 0;
   for (let i = 0; i < sched.length; i++) {
-    if (t < acc + sched[i].duration) return { idx: i, start: t - acc };
+    if (t < acc + sched[i].duration) {
+      return { idx: i, start: t - acc };
+    }
     acc += sched[i].duration;
   }
   return { idx: 0, start: 0 };
@@ -526,7 +530,6 @@ function switchChan(i) {
   const pos = getPos(CHANNELS[curChan].schedule);
   curIdx = pos.idx;
   
-  // Установка названия при смене канала
   document.getElementById('now-title').innerText = CHANNELS[curChan].schedule[pos.idx].title;
 
   if (player?.loadVideoById) {
@@ -544,7 +547,6 @@ function onYouTubeIframeAPIReady() {
   const pos = getPos(CHANNELS[curChan].schedule);
   curIdx = pos.idx;
   
-  // Установка названия при старте
   document.getElementById('now-title').innerText = CHANNELS[curChan].schedule[pos.idx].title;
 
   player = new YT.Player('player', {
@@ -599,11 +601,16 @@ function tick() {
 
   // Рендер блока "Далее"
   let html = '';
+  let accumulatedSeconds = item.duration - curTime;
+
   for (let i = 1; i <= 3; i++) {
     const nextItem = c.schedule[(pos.idx + i) % c.schedule.length];
-    let calc = (i === 1 ? item.duration - curTime : c.schedule[(pos.idx + i - 1) % c.schedule.length].duration);
-    const targetDate = new Date(Date.now() + calc * 1000);
+    const targetTimeMs = Date.now() + (accumulatedSeconds * 1000);
+    const targetDate = new Date(targetTimeMs);
+    
     html += `<div class="next-item"><span>${nextItem.title}</span><span class="when">~${String(targetDate.getHours()).padStart(2,'0')}:${String(targetDate.getMinutes()).padStart(2,'0')}</span></div>`;
+    
+    accumulatedSeconds += nextItem.duration;
   }
   document.getElementById('next-list').innerHTML = html;
 }
