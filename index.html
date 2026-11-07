@@ -113,7 +113,7 @@
       <div id="next-list"></div>
     </div>
 
-    <footer>IPTV 24/7</footer>
+    <footer>TV 24/7</footer>
   </div>
 </div>
 
@@ -525,6 +525,10 @@ function switchChan(i) {
   renderList(); updateUI();
   const pos = getPos(CHANNELS[curChan].schedule);
   curIdx = pos.idx;
+  
+  // Установка названия при смене канала
+  document.getElementById('now-title').innerText = CHANNELS[curChan].schedule[pos.idx].title;
+
   if (player?.loadVideoById) {
     player.loadVideoById({ videoId: CHANNELS[curChan].schedule[pos.idx].id, startSeconds: pos.start });
   }
@@ -539,6 +543,10 @@ function onYouTubeIframeAPIReady() {
   renderList(); updateUI();
   const pos = getPos(CHANNELS[curChan].schedule);
   curIdx = pos.idx;
+  
+  // Установка названия при старте
+  document.getElementById('now-title').innerText = CHANNELS[curChan].schedule[pos.idx].title;
+
   player = new YT.Player('player', {
     videoId: CHANNELS[curChan].schedule[pos.idx].id,
     playerVars: { autoplay: 1, controls: 0, disablekb: 1, fs: 0, rel: 0, modestbranding: 1, start: Math.floor(pos.start) },
