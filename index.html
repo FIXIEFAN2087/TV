@@ -1960,7 +1960,6 @@ const RAW_CHANNELS = [
       { id: 'SQiHn8nBDXg', duration: 1694, title: 'zeny. Серия 639. ЛЕНА ИЗМЕНЯЕТ ДОМЕРУ !? Реакция на Разоблачение Девушки ДОМЕРА' },
       { id: '_EYWLlyzow4', duration: 1305, title: 'zeny. Серия 640. 99 НОЧЕЙ ВЫЖИВАНИЕ В ЛЕСУ! ЧЕЛЛЕНДЖ С НАТАХОЙ ( Очень СТРАШНО! )' },
       { id: '-FIJGDb5ACk', duration: 1274, title: 'zeny. Серия 641. Меня ЗАСКАМИЛ ЭДИСОН с АВИТО - Разговор с ФЕЙКОМ...' },
-
       { id: 'o0UvqOo9r7k', duration: 1284, title: 'zeny. Серия 642. КТО ПЕРВЫЙ УГАДАЕТ ЮТУБЕРА получит 50.000 рублей в Майнкрафт' },
       { id: 'HCCXUe8kMxg', duration: 1484, title: 'zeny. Серия 643. Я Написал 100 ПОПУЛЯРНЫМ Ютуберам "ГО СОВМЕСТКУ"...' },
       { id: 'dkkQYhE7nlM', duration: 1093, title: 'zeny. Серия 644. АКИНАТОР ЗНАЕТ МОЮ ДЕВУШКУ ?!' },
@@ -9386,127 +9385,261 @@ const RAW_CHANNELS = [
   }
 ];
 
-const CHANNELS = RAW_CHANNELS.map(c => ({
-  ...c, schedule: c.schedule.map(i => ({ ...i, duration: parseDuration(i.duration) }))
-}));
+let channels = [];
+let currentChannelIndex = 0;
+let player = null;
+let isYTReady = false;
+let isTVStarted = false;
+let globalTimeOffset = 0;
+let tickInterval = null;
 
-let curChan = 0, player = null, muted = true, curIdx = -1;
-
-function renderList() {
-  const list = document.getElementById('channel-list');
-  list.innerHTML = CHANNELS.map((c, i) => `
-    <button class="channel-btn ${i === curChan ? 'active' : ''}" onclick="switchChan(${i})">
-      <span class="name">${i + 1}. ${c.name}</span><span class="channel-num">LIVE</span>
-    </button>`).join('');
-}
-
-function getPos(sched) {
-  const total = sched.reduce((a, x) => a + x.duration, 0);
-  let t = Math.floor((Date.now() - Date.UTC(2026, 0, 1)) / 1000) % total;
-  if (t < 0) t += total;
-  let acc = 0;
-  for (let i = 0; i < sched.length; i++) {
-    if (t < acc + sched[i].duration) return { idx: i, start: t - acc };
-    acc += sched[i].duration;
-  }
-  return { idx: 0, start: 0 };
-}
-
-function updateUI() {
-  const c = CHANNELS[curChan];
-  document.getElementById('watermark-logo-img').src = c.logo;
-  document.getElementById('header-brand').innerText = c.name;
-  document.getElementById('channel-footer-name').innerText = `Телеканал «${c.name}»`;
-  document.getElementById('overlay-title').innerText = `Телеканал «${c.name}»`;
-}
-
-function switchChan(i) {
-  curChan = i; curIdx = -1;
-  renderList(); updateUI();
-  const pos = getPos(CHANNELS[curChan].schedule);
-  curIdx = pos.idx;
-  
-  // Установка названия при смене канала
-  document.getElementById('now-title').innerText = CHANNELS[curChan].schedule[pos.idx].title;
-
-  if (player?.loadVideoById) {
-    player.loadVideoById({ videoId: CHANNELS[curChan].schedule[pos.idx].id, startSeconds: pos.start });
-  }
-}
-
-// Загрузка YT API
-var tag = document.createElement('script');
-tag.src = "https://www.youtube.com/iframe_api";
-document.head.appendChild(tag);
-
-function onYouTubeIframeAPIReady() {
-  renderList(); updateUI();
-  const pos = getPos(CHANNELS[curChan].schedule);
-  curIdx = pos.idx;
-  
-  // Установка названия при старте
-  document.getElementById('now-title').innerText = CHANNELS[curChan].schedule[pos.idx].title;
-
-  player = new YT.Player('player', {
-    videoId: CHANNELS[curChan].schedule[pos.idx].id,
-    playerVars: { autoplay: 1, controls: 0, disablekb: 1, fs: 0, rel: 0, modestbranding: 1, start: Math.floor(pos.start) },
-    events: { onReady: e => { e.target.mute(); e.target.playVideo(); setInterval(tick, 1000); } }
+function initChannels() {
+  const baseTime = 1700000000;
+  channels = RAW_CHANNELS.map((ch, idx) => {
+    let t = baseTime;
+    const sched = ch.schedule.map(item => {
+      const dur = parseDuration(item.duration);
+      const start = t;
+      t += dur;
+      return { ...item, duration: dur, start, end: t };
+    });
+    return { ...ch, id: idx, totalDuration: t - baseTime, schedule: sched };
   });
 }
 
+function renderSidebar() {
+  const list = document.getElementById('channel-list');
+  list.innerHTML = '';
+  channels.forEach((ch, idx) => {
+    const btn = document.createElement('button');
+    btn.className = `channel-btn ${idx === currentChannelIndex ? 'active' : ''}`;
+    btn.innerHTML = `<span>${ch.name}</span><span class="channel-num">0${idx+1}</span>`;
+    btn.onclick = () => switchChannel(idx);
+    list.appendChild(btn);
+  });
+}
+
+function formatTime(sec) {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = Math.floor(sec % 60);
+  if (h > 0) {
+    return `${h}:${m < 10 ? '0':''}${m}:${s < 10 ? '0':''}${s}`;
+  }
+  return `${m}:${s < 10 ? '0':''}${s}`;
+}
+
+function formatClock(d) {
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  const ss = String(d.getSeconds()).padStart(2, '0');
+  return `${hh}:${mm}:${ss}`;
+}
+
+function formatDate(d) {
+  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+// Загрузка YouTube API
+const tag = document.createElement('script');
+tag.src = "https://www.youtube.com/iframe_api";
+document.head.appendChild(tag);
+
+window.onYouTubeIframeAPIReady = function() {
+  isYTReady = true;
+  player = new YT.Player('player', {
+    height: '100%',
+    width: '100%',
+    playerVars: {
+      'autoplay': 1,
+      'controls': 0,
+      'disablekb': 1,
+      'fs': 0,
+      'iv_load_policy': 3,
+      'modestbranding': 1,
+      'playsinline': 1,
+      'rel': 0
+    },
+    events: {
+      'onStateChange': onPlayerStateChange
+    }
+  });
+};
+
+function onPlayerStateChange(event) {
+  if (isTVStarted && event.data === YT.PlayerState.PAUSED) {
+    player.playVideo();
+  }
+}
+
 function startTV() {
-  player?.unMute();
-  player?.setVolume(100);
-  muted = false;
-  document.getElementById('mute-btn').innerText = '🔊 Звук';
+  isTVStarted = true;
   document.getElementById('unmute-overlay').style.display = 'none';
-  document.getElementById('watermark-logo-img').classList.add('visible');
+  if (player && typeof player.unMute === 'function') {
+    player.unMute();
+    player.setVolume(100);
+    document.getElementById('mute-btn').innerText = "🔊 Звук";
+  }
+  tuneChannel(currentChannelIndex);
 }
 
 function toggleMute() {
-  if (!player) return;
-  muted = !muted;
-  muted ? player.mute() : player.unMute();
-  document.getElementById('mute-btn').innerText = muted ? '🔇 Звук' : '🔊 Звук';
+  if (!player || typeof player.isMuted !== 'function') return;
+  if (player.isMuted()) {
+    player.unMute();
+    document.getElementById('mute-btn').innerText = "🔊 Звук";
+  } else {
+    player.mute();
+    document.getElementById('mute-btn').innerText = "🔇 Звук";
+  }
 }
 
-function fmt(s) {
-  s = Math.max(0, Math.floor(s));
-  const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), sec = s % 60;
-  return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(sec).padStart(2, '0');
+function switchChannel(idx) {
+  currentChannelIndex = idx;
+  renderSidebar();
+  const ch = channels[idx];
+  document.getElementById('header-brand').innerText = ch.name;
+  document.getElementById('overlay-title').innerText = ch.name;
+  document.getElementById('channel-footer-name').innerText = ch.name;
+  
+  const logoImg = document.getElementById('watermark-logo-img');
+  if (ch.logo) {
+    logoImg.src = ch.logo;
+    logoImg.classList.add('visible');
+  } else {
+    logoImg.classList.remove('visible');
+  }
+
+  if (isTVStarted) {
+    tuneChannel(idx);
+  } else {
+    updateScheduleUI(idx);
+  }
+}
+
+function tuneChannel(idx) {
+  const ch = channels[idx];
+  const now = Math.floor(Date.now() / 1000) + globalTimeOffset;
+  const baseTime = ch.schedule[0].start;
+  const currentPosInLoop = (now - baseTime) % ch.totalDuration;
+  
+  let targetItem = ch.schedule[0];
+  let elapsedInItem = 0;
+
+  for (let item of ch.schedule) {
+    const itemStartRelative = item.start - baseTime;
+    if (currentPosInLoop >= itemStartRelative && currentPosInLoop < item.end - baseTime) {
+      targetItem = item;
+      elapsedInItem = currentPosInLoop - itemStartRelative;
+      break;
+    }
+  }
+
+  const container = document.getElementById('video-container');
+
+  if (targetItem.type === 'vk') {
+    // Рендер VK видео через iframe
+    // Разбираем id ссылки вида video-61911646_456241092 -> oid=-61911646, id=456241092
+    const parts = targetItem.id.replace('video', '').split('_');
+    const oid = parts[0];
+    const vid = parts[1];
+    
+    container.innerHTML = `<iframe src="https://vk.com/video_ext.php?oid=${oid}&id=${vid}&hd=2&autoplay=1" allow="autoplay; encrypted-media; fullscreen; picture-in-picture;" frameborder="0" allowfullscreen></iframe>`;
+  } else {
+    // Рендер YouTube видео
+    container.innerHTML = `<div id="player"></div>`;
+    if (isYTReady) {
+      player = new YT.Player('player', {
+        height: '100%',
+        width: '100%',
+        playerVars: {
+          'autoplay': 1,
+          'controls': 0,
+          'disablekb': 1,
+          'fs': 0,
+          'iv_load_policy': 3,
+          'modestbranding': 1,
+          'playsinline': 1,
+          'rel': 0
+        },
+        events: {
+          'onReady': () => {
+            player.loadVideoById({
+              videoId: targetItem.id,
+              startSeconds: Math.floor(elapsedInItem)
+            });
+            player.playVideo();
+          },
+          'onStateChange': onPlayerStateChange
+        }
+      });
+    }
+  }
+}
+
+function updateScheduleUI(idx) {
+  const ch = channels[idx];
+  const now = Math.floor(Date.now() / 1000) + globalTimeOffset;
+  const baseTime = ch.schedule[0].start;
+  const currentPosInLoop = (now - baseTime) % ch.totalDuration;
+
+  let currentIndex = 0;
+  let elapsedInItem = 0;
+
+  for (let i = 0; i < ch.schedule.length; i++) {
+    const item = ch.schedule[i];
+    const itemStartRelative = item.start - baseTime;
+    if (currentPosInLoop >= itemStartRelative && currentPosInLoop < item.end - baseTime) {
+      currentIndex = i;
+      elapsedInItem = currentPosInLoop - itemStartRelative;
+      break;
+    }
+  }
+
+  const currentItem = ch.schedule[currentIndex];
+  const remain = currentItem.duration - elapsedInItem;
+
+  document.getElementById('now-title').innerText = currentItem.title;
+  document.getElementById('elapsed').innerText = formatTime(elapsedInItem);
+  document.getElementById('remain').innerText = `осталось -${formatTime(remain)}`;
+  
+  const progPct = Math.min(100, Math.max(0, (elapsedInItem / currentItem.duration) * 100));
+  document.getElementById('prog').style.width = `${progPct}%`;
+
+  const nextList = document.getElementById('next-list');
+  nextList.innerHTML = '';
+  
+  for (let step = 1; step <= 3; step++) {
+    const nextIdx = (currentIndex + step) % ch.schedule.length;
+    const nextItem = ch.schedule[nextIdx];
+    const d = new Date(Date.now() + (remain + (step - 1) * currentItem.duration) * 1000);
+    const timeStr = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+
+    const div = document.createElement('div');
+    div.className = 'next-item';
+    div.innerHTML = `<span class="when">${timeStr}</span> <span style="flex:1; margin-left:12px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${nextItem.title}</span>`;
+    nextList.appendChild(div);
+  }
 }
 
 function tick() {
-  const now = new Date();
-  document.getElementById('clock').innerText = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
-  document.getElementById('date').innerText = now.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+  const d = new Date();
+  document.getElementById('clock').innerText = formatClock(d);
+  document.getElementById('date').innerText = formatDate(d);
 
-  const c = CHANNELS[curChan];
-  const pos = getPos(c.schedule);
-  const item = c.schedule[pos.idx];
-  let curTime = player?.getCurrentTime ? player.getCurrentTime() : pos.start;
-  if (isNaN(curTime)) curTime = pos.start;
-
-  if (curIdx !== pos.idx) {
-    curIdx = pos.idx;
-    player?.loadVideoById?.({ videoId: item.id, startSeconds: pos.start });
-    document.getElementById('now-title').innerText = item.title;
+  if (channels.length > 0) {
+    updateScheduleUI(currentChannelIndex);
   }
-
-  document.getElementById('prog').style.width = Math.min(100, (curTime / item.duration) * 100) + '%';
-  document.getElementById('elapsed').innerText = fmt(curTime);
-  document.getElementById('remain').innerText = 'осталось ' + fmt(item.duration - curTime);
-
-  // Рендер блока "Далее"
-  let html = '';
-  for (let i = 1; i <= 3; i++) {
-    const nextItem = c.schedule[(pos.idx + i) % c.schedule.length];
-    let calc = (i === 1 ? item.duration - curTime : c.schedule[(pos.idx + i - 1) % c.schedule.length].duration);
-    const targetDate = new Date(Date.now() + calc * 1000);
-    html += `<div class="next-item"><span>${nextItem.title}</span><span class="when">~${String(targetDate.getHours()).padStart(2,'0')}:${String(targetDate.getMinutes()).padStart(2,'0')}</span></div>`;
-  }
-  document.getElementById('next-list').innerHTML = html;
 }
+
+window.addEventListener('DOMContentLoaded', () => {
+  initChannels();
+  renderSidebar();
+  switchChannel(0);
+
+  tickInterval = setInterval(tick, 1000);
+  tick();
+});
 </script>
 </body>
 </html>
